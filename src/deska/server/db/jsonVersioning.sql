@@ -1,5 +1,8 @@
 SET search_path TO deska;
 
+/** API function startChangeset
+   * Call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.startChangeset(tag text)
 RETURNS text
 AS
@@ -23,6 +26,9 @@ def main(tag):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function abortCurrentChangeset
+   * Call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.abortCurrentChangeset(tag text)
 RETURNS text
 AS
@@ -45,6 +51,9 @@ def main(tag):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function resumeChangeset
+   * Call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.resumeChangeset(tag text, revision text)
 RETURNS text
 AS
@@ -67,6 +76,9 @@ def main(tag,revision):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function commitChangeset
+   * Call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.commitChangeset(tag text, commitMessage text)
 RETURNS text
 AS
@@ -89,6 +101,9 @@ def main(tag,commitMessage):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function restoringCommit
+   * Call proper stored function
+   */
 CREATE OR REPLACE FUNCTION api.restoringCommit(tag text, commitMessage text, author text, timestamp_ timestamp without time zone)
 RETURNS text
 AS
@@ -111,6 +126,9 @@ def main(tag,commitMessage,author,timestamp):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function detachFromCurrentChangeset
+   * Call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.detachFromCurrentChangeset(tag text, message text)
 RETURNS text
 AS
@@ -133,6 +151,9 @@ def main(tag,message):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function pendingChangesets
+   * Select data from changeset table
+   */
 CREATE OR REPLACE FUNCTION jsn.pendingChangesets(tag text, filter text = NULL)
 RETURNS text
 AS
@@ -174,6 +195,9 @@ def main(tag,filter):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function listRevisions
+   * Select data from version table
+   */
 CREATE OR REPLACE FUNCTION jsn.listRevisions(tag text, filter text = NULL)
 RETURNS text
 AS
@@ -214,6 +238,9 @@ def main(tag,filter):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function dataDifference
+   * Call proper stored functions for diff for all kinds
+   */
 CREATE OR REPLACE FUNCTION jsn.dataDifference(tag text, a text, b text)
 RETURNS text
 AS
@@ -242,6 +269,9 @@ def main(tag,a,b):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function dataDifferenceInTemporaryChangeset
+   * Call proper stored functions for diff for all kinds
+   */
 CREATE OR REPLACE FUNCTION jsn.dataDifferenceInTemporaryChangeset(tag text, changeset text = NULL)
 RETURNS text
 AS
@@ -270,6 +300,9 @@ def main(tag,changeset):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function resolvedDataDifference
+   * Call proper stored functions for diff for all kinds
+   */
 CREATE OR REPLACE FUNCTION jsn.resolvedDataDifference(tag text, a text, b text)
 RETURNS text
 AS
@@ -298,6 +331,9 @@ def main(tag,a,b):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function resolvedDataDifferenceInTemporaryChangeset
+   * Call proper stored functions for diff for all kinds
+   */
 CREATE OR REPLACE FUNCTION jsn.resolvedDataDifferenceInTemporaryChangeset(tag text, changeset text = NULL)
 RETURNS text
 AS
@@ -326,6 +362,9 @@ def main(tag,changeset):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function startChangeset
+   * Call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.lockCurrentChangeset(tag text)
 RETURNS text
 AS
@@ -347,6 +386,9 @@ def main(tag):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function startChangeset
+   * Call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.unlockCurrentChangeset(tag text)
 RETURNS text
 AS

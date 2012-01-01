@@ -1,4 +1,6 @@
-
+/** API function for receiving kindInstances
+   * Prepare SQL statement with proper column definition and call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.kindInstances(tag text, kindName text, revision text, filter text = NULL)
 RETURNS text
 AS
@@ -52,6 +54,9 @@ def main(tag,kindName,revision,filter):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function for receiving objectData
+   * Prepare SQL statement with proper column definition and call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.objectData(tag text, kindName text, objectName text, revision text)
 RETURNS text
 AS
@@ -93,6 +98,9 @@ def main(tag,kindName,objectName,revision):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function for receiving resolvedObjectData
+   * Prepare SQL statement with proper column definition and call proper stored function
+   */
 CREATE OR REPLACE FUNCTION jsn.resolvedObjectData(tag text, kindName text, objectName text, revision text)
 RETURNS text
 AS
@@ -134,6 +142,10 @@ def main(tag,kindName,objectName,revision):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function for receiving resolvedObjectDataWithOrigin
+   * Prepare SQL statement with proper column definition and call proper stored function
+   * fake origin for nontempletized kinds
+   */
 CREATE OR REPLACE FUNCTION jsn.resolvedObjectDataWithOrigin(tag text, kindName text, objectName text, revision text)
 RETURNS text
 AS

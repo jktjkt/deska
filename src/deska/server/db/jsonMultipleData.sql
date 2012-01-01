@@ -1,3 +1,7 @@
+/** API function for multipleObjectData
+   * Prepare SQL statement and call proper stored function
+   * See coldef creation to understand how SQL statement work
+   */
 CREATE OR REPLACE FUNCTION jsn.multipleObjectData(tag text, kindName text, revision text, filter text = NULL)
 RETURNS text
 AS
@@ -75,6 +79,10 @@ def main(tag,kindName,revision,filter):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function for multipleResolvedObjectData
+   * Prepare SQL statement and call proper stored function
+   * See coldef creation to understand how SQL statement work
+   */
 CREATE OR REPLACE FUNCTION jsn.multipleResolvedObjectData(tag text, kindName text, revision text, filter text = NULL)
 RETURNS text
 AS
@@ -179,6 +187,10 @@ def main(tag,kindName,revision,filter):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function for multipleResolvedObjectDataWithOrigin
+   * Prepare SQL statement and call proper stored function
+   * See coldef creation to understand how SQL statement work
+   */
 CREATE OR REPLACE FUNCTION jsn.multipleResolvedObjectDataWithOrigin(tag text, kindName text, revision text, filter text = NULL)
 RETURNS text
 AS
