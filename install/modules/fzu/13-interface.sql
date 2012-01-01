@@ -25,7 +25,6 @@ CREATE TABLE interface (
 		CONSTRAINT "interface port cannot be empty string"
 		CHECK (port != ''),
 	note text,
-	template bigint,
 	CONSTRAINT "interface with this name already exists in this host" UNIQUE (name,host)
 );
 
