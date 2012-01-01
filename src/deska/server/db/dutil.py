@@ -109,6 +109,7 @@ def fcall(fname,*args):
 	except Postgres.Exception as dberr:
 		raise DeskaException(dberr)
 
+import time
 def getdata(select,*args):
 	'''Get data from database.
 	@param select Select statement
@@ -119,8 +120,12 @@ def getdata(select,*args):
 		with xact():
 			Postgres.NOTICE("Running command: "+select)
 			Postgres.NOTICE(args)
+			t = time.time()
 			plan = prepare(select)
-			return plan.column_names, plan(*args)
+			ret = plan(*args)
+			Postgres.NOTICE("Takes: {0}s".format(time.time() - t))
+			return plan.column_names, ret
+
 	except Postgres.Exception as dberr:
 		raise DeskaException(dberr)
 

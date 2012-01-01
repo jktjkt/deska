@@ -183,7 +183,7 @@ CREATE FUNCTION commit_all(message text)
 			self.refs[tbl] = self.refs[self.templates[tbl]]
 			for relName in refNamesCopy:
 				if self.refNames[relName] == self.templates[tbl]:
-					#FIXME: now we can overwrite another relation with same name, but this is wanted until we fix function for getting fks
+					# now we can overwrite another relation with same name, but this is wanted 
 					newRelName = relName + "_XXX"
 					self.refNames[newRelName] = tbl
 					self.relFromTbl[newRelName] = tbl
@@ -243,8 +243,9 @@ CREATE FUNCTION commit_all(message text)
 		for col in fkconstraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
 			relName = col[0]
-			if relName in self.relFromTbl:
-				#FIXME: this should not happen, HOTFIX:
+			while relName in self.relFromTbl:
+				#check if relation if this name exists
+				#and add suffix to it
 				relName = relName + "_XXX"
 			self.relFromTbl[relName] = tbl
 			self.relFromCol[relName] = col[1]

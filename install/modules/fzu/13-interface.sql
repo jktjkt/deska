@@ -23,8 +23,6 @@ CREATE TABLE interface (
 		CONSTRAINT rrefer_interface_fk_switch REFERENCES switch(uid) DEFERRABLE,
 	port text
 		CONSTRAINT "interface port cannot be empty string"
-        -- FIXME: relax this constraint; we can't enforce it right now
-        -- (think virtual machines or anything else without a real, physical switch interconnect)
 		CHECK (port != ''),
 	note text,
 	template bigint,
