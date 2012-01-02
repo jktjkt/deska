@@ -9,9 +9,6 @@
 The following chapter serves as a users' guide to the CLI application.
 \end{abstract}
 
-\todo{Tomas: please use a proper markup (\\tt etc.) throughout this section. A command shall be shown in an appropriate
-typeface.}
-
 \section{Introduction}
 
 The Deska CLI is a console application serving as an exclusive tool for manipulating data in the DB. For running the
@@ -40,9 +37,9 @@ host hpv2->interface eth0>
 \end{minted}
 
 Now we are in context of object interface "interface eth0" embedded in "host hpv2". Stepping from the context is done by
-keyword "end".
+keyword {\tt end}.
 
-There is also a possibility of shortened types of jumping into context of a nested object using "->" in the name of the
+There is also a possibility of shortened types of jumping into context of a nested object using {\tt ->} in the name of the
 object.
 
 \begin{minted}{text}
@@ -52,7 +49,7 @@ host hpv2> end
 >
 \end{minted}
 
-The "interface hpv2->eth0" is equivalent to "host hpv2 interface eth0". So also keyword {\tt end} will jump into context of
+The {\tt interface hpv2->eth0} is equivalent to {\tt host hpv2 interface eth0}. So also keyword {\tt end} will jump into context of
 "host hpv2" and not to a "top-level" context. This shortened version could be used also in commands manipulating with
 objects.
 
@@ -73,9 +70,9 @@ Note that each part of the filter has to be in braces. In a filter for a specifi
 attributes directly from this kind, or kinds, that are contained in this one. There is also possibility to use expressions
 containing attributes of any kind, that is in some relation with this one. With relations we mean standard Deska relations
 like "embed into", "contains" and "containable" and "refers to". These attributes should be prefixed by name of their
-kind with dot. For example "interface.ipv4". There are two sets of operators, that can be used in expressions. First
-set is for standard attributes: "<", ">", "<=", ">=", "!=" or "<>" and "=" or "==". The second set is for identifiers
-sets. There are only two operators: "contains" and "not\_contains".
+kind with dot. For example {\tt interface.ipv4}. There are two sets of operators, that can be used in expressions. First
+set is for standard attributes: {\tt <}, {\tt >}, {\tt <=}, {\tt >=}, {\tt !=} or {\tt <>} and {\tt =} or {\tt ==}. The second set is for identifiers
+sets. There are only two operators: {\tt contains} and {\tt not\_contains}.
 
 Filters are an exception in a concept of context. Normally we can not be in context of a specific interface without being
 in context of its host. Filters are a little bit different as a set of interfaces should not have one shared parent. So
@@ -181,7 +178,7 @@ additional information. When in a context, it will display information about obj
 information contains all attributes with resolved values from templates. When some attribute value was taken from
 a template, information about source of this value is also printed. If some object is contained in one being currently
 printed, its attributes and nested kinds will be printed under attribute referring to that object. Nested objects are
-printed in a way similar to the output from the command "dump". Example of output from {\tt show} on a host containing some hardware
+printed in a way similar to the output from the command {\tt dump}. Example of output from {\tt show} on a host containing some hardware
 through attribute "hardware" with attribute "ram" inherited from template for hardware with name "hp357":
 
 \begin{minted}{text}
@@ -212,9 +209,9 @@ interface eth0
 end
 \end{minted}
 
-Command {\tt show} could be used also for printing information about objects outside of the current context. Like "show host hpv2" or
-"show host hpv2 interface eth0". This form will print the requested information without changing the current context.
-The parameter can refer both to the top-level objects and to those in the current context. It means that in context of host "hpv2" you can type "show interface eth0"
+Command {\tt show} could be used also for printing information about objects outside of the current context. Like {\tt show host hpv2} or
+{\tt show host hpv2 interface eth0}. This form will print the requested information without changing the current context.
+The parameter can refer both to the top-level objects and to those in the current context. It means that in context of host "hpv2" you can type {\tt show interface eth0}
 for showing information about interface "eth0" nested in host "hpv2".
 
 \section{Work with changesets}
@@ -225,7 +222,7 @@ you can commit this changeset and your changes will be written to the DB and new
 Start of new changeset is done using keyword {\tt start}. Then if you are not done with your work and you would like to
 go home from the work, you can detach from the changeset. You should use command {\tt detach} for this purpose. Using
 this, you will not loose your work in progress. CLI will ask you for a detach message commenting what is going on in
-your changeset. You can optionally type the message as a command parameter. For example "detach Adding new machine".
+your changeset. You can optionally type the message as a command parameter. For example {\tt detach Adding new machine}.
 When you would like to connect to your changeset again, you should use command {\tt resume}. This command will show
 you a list of changesets with some additional information and you can choose one to connect to. You can also find your
 changeset in this list if your CLI dies, or if you exit it without detaching. Sou your work will not be lost. Each changeset has
@@ -243,9 +240,9 @@ attributes.
 
 \subsection{Objects creating, deleting and renaming}
 
-There are three ways on how to create an object. First one is an explicit one using keyword {\tt create}. For example "create
-host hpv2" will create object "host hpv2". You can also directly create nested object (including its parent, if it
-doesn't exist yet) using a single "create host hpv2 interface eth0" call. Note that the keyword "create" does not change
+There are three ways on how to create an object. First one is an explicit one using keyword {\tt create}. For example {\tt create
+host hpv2} will create object "host hpv2". You can also directly create nested object (including its parent, if it
+doesn't exist yet) using a single {\tt create host hpv2 interface eth0} call. Note that the keyword {\tt create} does not change
 the current context, but acts as a standalone action -- an object is created, but the user's context remains the same.
 Second way how to create an object is through an attempt to step into the context on a non-existing object.
 When trying to do that, CLI will ask you if you want to create this object. Obviously, this second will change the
@@ -285,13 +282,13 @@ In this example you can see that the keyword {\tt new} changes the context to en
 come handy when working with ``append-only'' objects like in an event log.
 
 Deleting objects is similar to creating. It is done using keyword {\tt delete}. You can use the same parameters as in
-create, like "delete host hpv2". When you are trying to delete a nested object directly, use "delete host hpv2 interface
-eth0". This will delete only the interface, not the whole host. When deleting parent of some nested objects, CLI will
+create, like {\tt delete host hpv2}. When you are trying to delete a nested object directly, use {\tt delete host hpv2 interface
+eth0}. This will delete only the interface, not the whole host. When deleting parent of some nested objects, CLI will
 also delete all these nested objects (after confirmation). You can als
 
 Renaming of objects is also very simple, through the {\tt rename} keyword. The format of
 parameter for {\tt rename} is similar as in create, but you have to specify the new name of the object. For example
-"rename host hpv2 hpv3" will rename host "hpv2" to "hpv3". When you are renaming an object which is connected using relation
+{\tt rename host hpv2 hpv3} will rename host "hpv2" to "hpv3". When you are renaming an object which is connected using relation
 "contains" or "containable" to another objects, the CLI will ask you if you want to rename these connected objects
 as well as they have the same name. If you do not rename them, the connection between them will be lost.
 
@@ -306,7 +303,7 @@ host hpv2> end
 >
 \end{minted}
 
-Shortened notations like "interface hpv2->eth0" could be also used for deleting or renaming. Note, that when renaming
+Shortened notations like {\tt interface hpv2->eth0} could be also used for deleting or renaming. Note, that when renaming
 object using this shortened notation, parameter identifying a new name should not contain parents name. For example:
 
 \begin{minted}{text}
@@ -325,11 +322,11 @@ host hpv2->interface eth0> ip4 192.168.25.65
 host hpv2>
 \end{minted}
 
-You can also remove the value of the attribute using keyword {\tt no}. For example "no ip4". There are also two special
+You can also remove the value of the attribute using keyword {\tt no}. For example {\tt no ip4}. There are also two special
 keywords for operations with identifier sets. It is keyword {\tt add} for adding an identifier to a set and keyword
-{\tt remove} for removing an identifier from a set --- e.g. "add service www" for adding identifier "www" to a set
-with name service. You also set the set directly as a value of standard attribute using the notion "service [ftp, www,
-dns]", which simply overwrites the current value with the specified data.
+{\tt remove} for removing an identifier from a set --- e.g. {\tt add service www} for adding identifier "www" to a set
+with name service. You also set the set directly as a value of standard attribute using the notion {\tt service [ftp, www,
+dns]}, which simply overwrites the current value with the specified data.
 
 Here is the list of all supported types and syntax for the values:
 
@@ -410,8 +407,8 @@ objects. The filter definition syntax could be described as this recursive struc
 <expression> = comparison of some revision metadata and some value
 \end{minted}
 
-Note that each part of the filter has to be in braces. In an expression you can use the following operators: "<", ">",
-"<=", ">=", "!=" or "<>" and "=" or "==".
+Note that each part of the filter has to be in braces. In an expression you can use the following operators: {\tt <}, {\tt >},
+{\tt <=}, {\tt >=}, {\tt !=} or {\tt <>} and {\tt =} or {\tt ==}.
 
 Here is the list of attributes, that can be used in expressions:
 

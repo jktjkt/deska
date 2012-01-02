@@ -29,7 +29,14 @@ translator between questions and responses from the {\tt UserInterface} and the 
 components, there is one more. The whole CLI needs some configuration values for its work. For obtaining these values 
 is responsible {\tt Deska::Cli::CliConfig}.
 
-\missingfigure{Tomas: Add picture how the components are connected}
+See figure \ref{img:deska-cli} for summary of how the main components are communicating with each other.
+
+\begin{figure}[h]
+    \centering
+    \label{img:deska-cli}
+    \includegraphics[trim=28mm 182mm 57mm 28mm, clip=true]{img-deska-cli.pdf}
+    \caption{Deska CLI Structure}
+\end{figure}
 
 Now we can describe all components in more detail.
 
@@ -316,8 +323,6 @@ as in case of diff to a file.
 
 The format of the backup is following:
 
-\todo{Tomas: Format this somehow}
-
 \begin{minted}{text}
 <list of modifications between r1 and r2, one per line>
 ...
@@ -408,7 +413,15 @@ The whole parser communicates with the outer world through emitting the signals 
     \item {\tt TopLevelParser} -- parser combining {\tt KindsOnlyParser} and \item {\tt KindsFiltersParser}
 \end{itemize}
 
-\missingfigure{Tomas: Add picture how the grammars are composed}
+Figure \ref{img:deska-cli-parser} shows the structure of the parser. Arrows are showing, where the parser is used. Only the blue
+ones are used for parsing of an actual input. Others are only parts (sub-parsers) of other bigger units.
+
+\begin{figure}[h]
+    \centering
+    \label{img:deska-cli-parser}
+    \includegraphics[trim=28mm 157mm 41mm 28mm, clip=true]{img-deska-cli-parser.pdf}
+    \caption{Deska CLI Parser}
+\end{figure}
 
 Now we will describe the single sub-grammars and error reporting in more detail.
 

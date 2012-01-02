@@ -1150,6 +1150,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
             // Check if the user is supposed to enter some objects name, that we can complete
             if (!(it->context().empty())) {
                 std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Object names of " << it->context() << std::endl;
+#endif
                 for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
                     std::vector<Db::Identifier> path = pathToVector(*iti);
                     BOOST_ASSERT(path.size() > contextStack.size());
@@ -1174,6 +1177,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         // right after no keyword. That means it is one character before end of the line.
         if ((realEnd - it->errorPosition() - 1) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Keywords from ATTRIBUTE_REMOVAL error" << std::endl;
+#endif
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
             }
@@ -1191,6 +1197,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Keywords from OBJECT_DEFINITION_NOT_FOUND error" << std::endl;
+#endif
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
             }
@@ -1210,6 +1219,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         // right after no keyword. That means it is one character before end of the line.
         if ((realEnd - it->errorPosition() - 1) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Keywords from KIND_SPECIAL_FILTER error" << std::endl;
+#endif
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
             }
@@ -1227,6 +1239,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Keywords from KIND error" << std::endl;
+#endif
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
             }
@@ -1244,6 +1259,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition() - 1) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Keywords from KINDS_CONSTRUCT error" << std::endl;
+#endif
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
             }
@@ -1261,6 +1279,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Keywords from ATTRIBUTE error" << std::endl;
+#endif
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
             }
@@ -1278,6 +1299,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition() - 1) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Keywords from IDENTIFIERS_SET error" << std::endl;
+#endif
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
             }
@@ -1299,6 +1323,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Attributes for kinds from keywords from KIND_FILTER error" << std::endl;
+#endif
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(*iti);
                 for (std::vector<Db::KindAttributeDataType>::iterator itat = attributes.begin();
@@ -1330,6 +1357,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                              break;
                 if (itr != refersTo[contextStack.back().kind].end()) {
                     std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Instances from relation REFERS_TO of kind " << itr->second << std::endl;
+#endif
                     for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
                         possibilities.push_back(line + *iti);
                     }
@@ -1338,6 +1368,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                 std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> >::const_iterator i = embeddedInto.find(contextStack.back().kind);
                 if ((i != embeddedInto.end()) && (i->second.first == it->context())) {
                     std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(i->second.second);
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Instances from relation EMBED_INTO of kind " << i->second.second << std::endl;
+#endif
                     for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
                         possibilities.push_back(line + *iti);
                     }
@@ -1349,6 +1382,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                              break;
                 if (itr != contains[contextStack.back().kind].end()) {
                     std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Instances from relation CONTAINS of kind " << itr->second << std::endl;
+#endif
                     for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
                         possibilities.push_back(line + *iti);
                     }
@@ -1360,6 +1396,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                              break;
                 if (itr != containable[contextStack.back().kind].end()) {
                     std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Instances from relation CONTAINABLE of kind " << itr->second << std::endl;
+#endif
                     for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
                         possibilities.push_back(line + *iti);
                     }
@@ -1371,6 +1410,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                              break;
                 if (itr != templatized[contextStack.back().kind].end()) {
                     std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: Instances from relation TEMPLATIZED of kind " << itr->second << std::endl;
+#endif
                     for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
                         possibilities.push_back(line + *iti);
                     }
