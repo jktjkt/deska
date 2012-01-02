@@ -117,6 +117,12 @@ bool UserInterface::applyCreateObject(const ContextStack &context,
         io->reportError(ostr.str());
         parsingFailed = true;
         return false;
+    } catch (MassCreatingEmbeddedError &e) {
+        std::ostringstream ostr;
+        ostr << e.what();
+        io->reportError(ostr.str());
+        parsingFailed = true;
+        return false;
     }
 }
 

@@ -37,6 +37,7 @@ public:
     virtual ~ParserException() throw ();
     virtual std::string dump() const;
     virtual int offset() const;
+    virtual const char *what() const throw ();
 protected:
     std::string m;
     std::string input;
@@ -48,6 +49,7 @@ protected:
 
 #define DESKA_EXCEPTION(Class, Parent) \
     class Class: public Parent {public: \
+    virtual ~Class() throw (); \
     Class(const std::string &message);\
     Class(const std::string &message, const std::string &input_, const std::string::const_iterator &where);\
     virtual std::string dump() const;\
@@ -77,6 +79,9 @@ DESKA_EXCEPTION(ObjectNotFound, ParserException);
 
 /** @short Object does not contain any attributes or nested kinds */
 DESKA_EXCEPTION(NoAttributesOrKindsDefined, ParserException);
+
+/** @short Attempted to mass-create a number of objects with the "last" filter */
+DESKA_EXCEPTION(MassCreatingEmbeddedError, ParserException);
 
 /** @short Compare two exceptions for being equal */
 bool operator==(const ParserException &a, const ParserException &b);

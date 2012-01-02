@@ -125,7 +125,9 @@ obeying the following rules:
     \item The foreign key shall always reference the {\tt uid} column of the target table
 \end{itemize}
 
-The tables that are embedded into another have to have unique pair of uid and referencing column, which refers to uid of table that is this embedded into.
+In contrast to the ``ordinary'' Deska tables which have a constraint on a unique value of column {\tt name}, on case of
+the embedded tables this constraint shall instead enforce uniqueness of the ({\tt name}, reference-to-parent) columns,
+similar to the {\tt interface\_pk\_namexhost} in the following example:
 
 \begin{minted}{sql}
 SET search_path TO production,deska;
