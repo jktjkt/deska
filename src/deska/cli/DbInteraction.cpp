@@ -24,6 +24,7 @@
 #include <boost/foreach.hpp>
 #include <sstream>
 #include "DbInteraction.h"
+#include "deska/cli/Exceptions.h"
 
 namespace Deska
 {
@@ -94,11 +95,14 @@ ContextStackItem DbInteraction::createObject(const ContextStack &context)
     }
     m_api->applyBatchedChanges(modifications);
 
-    if (context.back().name.empty())
+    if (context.back().name.empty()) {
+        // The following command can fail when one tries to create embedded objects inside a filter.
+        throw MassCreatingEmbeddedError("Mass-creating of the nested objects is not supported, sorry.");
         return ContextStackItem(context.back().kind, Db::Filter(
         Db::SpecialExpression(Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE, context.back().kind)));
-    else
+    } else {
         return ContextStackItem(context.back().kind, context.back().name);
+    }
 }
 
 

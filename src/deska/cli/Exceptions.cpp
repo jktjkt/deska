@@ -90,6 +90,7 @@ DESKA_ECBODY(MalformedIdentifier, ParserException);
 DESKA_ECBODY(ObjectDefinitionNotFound, ParserException);
 DESKA_ECBODY(ObjectNotFound, ParserException);
 DESKA_ECBODY(NoAttributesOrKindsDefined, ParserException);
+DESKA_ECBODY(MassCreatingEmbeddedError, ParserException);
 
 #undef DESKA_ECBODY
 

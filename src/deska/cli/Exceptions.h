@@ -78,6 +78,9 @@ DESKA_EXCEPTION(ObjectNotFound, ParserException);
 /** @short Object does not contain any attributes or nested kinds */
 DESKA_EXCEPTION(NoAttributesOrKindsDefined, ParserException);
 
+/** @short Attempted to mass-create a number of objects with the "last" filter */
+DESKA_EXCEPTION(MassCreatingEmbeddedError, ParserException);
+
 /** @short Compare two exceptions for being equal */
 bool operator==(const ParserException &a, const ParserException &b);
 
