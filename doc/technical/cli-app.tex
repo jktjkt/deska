@@ -407,7 +407,7 @@ The whole parser communicates with the outer world through emitting the signals 
                                            attribute names and their values
     \item {\tt FiltersParser} -- parser for regular filters for one specific kind employing {\tt FilterExpressionsParser}, this one parses
                                  their conjuction and disjunction with braces 
-    \item {\tt KindsFiltersParser} -- parser connecting {\tt FiltersParser} and special filter parsers like {\tt all} or {\tt last} 
+    \item {\tt KindsFiltersParser} -- parser connecting {\tt FiltersParser} and special filter parsers like {\tt all} 
     \item {\tt KindsParser} -- parser combining {\tt KindsOnlyParser}, {\tt KindsConstructParser} and {\tt FiltersParser}
     \item {\tt WholeKindParser} -- parser combining {\tt KindsParser} and {\tt AttributesParser}  
     \item {\tt TopLevelParser} -- parser combining {\tt KindsOnlyParser} and \item {\tt KindsFiltersParser}

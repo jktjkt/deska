@@ -206,6 +206,7 @@ std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
     std::map<std::string, std::string> usages;
     usages["create"] = "Creates object given as parameter (e.g. create hardware hp456). Longer parameters are also allowed (e.g. create host golias120 interface eth0) This will create both objects.";
     usages["new"] = "Creates a new object of kind given as parameter. Name will be generated (e.g. new failure).";
+    // FIXME: "Implement last in the DB"
     //usages["last"] = "Selects an object of given kind with the highest numerical name (e.g. last failure).";
     usages["all"] = "Selects all objects of given kind (e.g. all host).";
     usages["delete"] = "Deletes object given as parameter (e.g. delete hardware hp456). Longer parameters are also allowed (e.g. delete host golias120 interface eth0) This will delete only interface eth0 in the object host golias120.";
@@ -1134,6 +1135,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
         }
         if (!embededKinds.empty()) {
             possibilities.push_back(line + "new");
+            // FIXME: "Implement last in the DB"
             //possibilities.push_back(line + "last");
             possibilities.push_back(line + "all");
             if (line.empty()) {
