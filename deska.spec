@@ -144,8 +144,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files libs
 %defattr(-,root,root,-)
-%{_libdir}/libDeskaDb.so.0.10
-%{_libdir}/libDeskaCli.so.0.10
+%{_libdir}/libDeskaDb.so.1.0
+%{_libdir}/libDeskaCli.so.1.0
 
 %files python-libs
 %defattr(-,root,root,-)
