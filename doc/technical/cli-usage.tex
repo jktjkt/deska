@@ -225,13 +225,25 @@ this, you will not loose your work in progress. CLI will ask you for a detach me
 your changeset. You can optionally type the message as a command parameter. For example {\tt detach Adding new machine}.
 When you would like to connect to your changeset again, you should use command {\tt resume}. This command will show
 you a list of changesets with some additional information and you can choose one to connect to. You can also find your
-changeset in this list if your CLI dies, or if you exit it without detaching. Sou your work will not be lost. Each changeset has
-its ID. You can see it in the list and you can also obtain it using command {\tt status}. This command will tel you
-if you are in some changeset and if you are, it will tell you in which. You can then use this ID directly as parameter
-of the command {\tt resume}. This ID does not change, so if you know it, you can skip the choosing using list of
+changeset in this list if your CLI dies, or if you exit it without detaching. So your work will not be lost. Each changeset has
+its ID. You can see it in the list and you can also obtain it using command {\tt status} or you can see in in the prompt.
+This command will tell you if you are in some changeset and if you are, it will tell you in which. You can then use this ID directly
+as parameter of the command {\tt resume}. This ID does not change, so if you know it, you can skip the choosing using list of
 all changesets. If you want to abort current changeset and discard all work you have don in it, type simply {\tt abort}.
 When you are done, you can commit your work using command {\tt commit}. The CLI will ask you for a commit message of as
 in case of detach, you can type it directly as a command parameter.
+
+Here is an example of starting a changeset:
+\begin{minted}{text}
+> start
+Changeset tmp1 started.
+tmp1> abort
+Really abort current changeset? y
+Changeset tmp1 aborted.
+> start
+Changeset tmp2 started.
+tmp2>
+\end{minted}
 
 \section{Modifying objects and their attributes}
 
@@ -249,12 +261,12 @@ When trying to do that, CLI will ask you if you want to create this object. Obvi
 context, for example:
 
 \begin{minted}{text}
-> host hpv2
+tmp1> host hpv2
 Object(s) host hpv2 do(es) not exist. Create? y
-host hpv2> end
-> host hpv2
-host hpv2> end
->
+tmp1:host hpv2> end
+tmp1> host hpv2
+tmp1:host hpv2> end
+tmp1>
 \end{minted}
 
 When going into the context of a nested object where the parent does not exist either, the CLI will ask only for creating the
@@ -265,13 +277,13 @@ objects, and lets the server assign a name to the newly created object automatic
 new object where the custom name does not make much sense. You specify only the kind name after this keyword new:
 
 \begin{minted}{text}
-> hardware ibm458
-hardware ibm458> new failure
-hardware ibm458->failure failure_1> end
-hardware ibm458> new failure
-hardware ibm458->failure failure_2> end
-hardware ibm458> end
->
+tmp1> hardware ibm458
+tmp1:hardware ibm458> new failure
+tmp1:hardware ibm458->failure failure_1> end
+tmp1:hardware ibm458> new failure
+tmp1:hardware ibm458->failure failure_2> end
+tmp1:hardware ibm458> end
+tmp1>
 \end{minted}
 
 Please keep in mind that the user cannot make any assumptions about the newly assigned name.  The current server
@@ -296,19 +308,19 @@ For renaming, creating and deleting objects you can also use filters. Here is th
 a host with some specific characteristic:
 
 \begin{minted}{text}
-> host hpv2
-host hpv2> delete interface where (note == "to delete")
+tmp1> host hpv2
+tmp1:host hpv2> delete interface where (note == "to delete")
 Are you sure you want to delete objects(s) interface from filter? y
-host hpv2> end
->
+tmp1:host hpv2> end
+tmp1>
 \end{minted}
 
 Shortened notations like {\tt interface hpv2->eth0} could be also used for deleting or renaming. Note, that when renaming
 object using this shortened notation, parameter identifying a new name should not contain parents name. For example:
 
 \begin{minted}{text}
-> rename interface hpv2->eth0 eth1
->
+tmp1> rename interface hpv2->eth0 eth1
+tmp1>
 \end{minted}
 
 \subsection{Modifying attributes}
@@ -317,9 +329,9 @@ The simplest way of modifying an attribute of a specific object is by typing the
 when being in context of the object:
 
 \begin{minted}{text}
-> host hpv2 interface eth0
-host hpv2->interface eth0> ip4 192.168.25.65
-host hpv2>
+tmp1> host hpv2 interface eth0
+tmp1:host hpv2->interface eth0> ip4 192.168.25.65
+tmp1:host hpv2>
 \end{minted}
 
 You can also remove the value of the attribute using keyword {\tt no}. For example {\tt no ip4}. There are also two special
@@ -347,34 +359,34 @@ Here is the list of all supported types and syntax for the values:
 
 You can also set more attributes using one line notation. For example:
 \begin{minted}{text}
-host hpv2->interface eth0> ip4 192.168.25.65 ip6 123f:1234::1 
-host hpv2->interface eth0>
+tmp1:host hpv2->interface eth0> ip4 192.168.25.65 ip6 123f:1234::1 
+tmp1:host hpv2->interface eth0>
 \end{minted}
 
 Moreover it is possible to step into context of some object and set its attributes using one line notation. This will
 change the context only temporarily for the attributes setting. The context remains the same as before after processing
 the line. Here is an example:
 \begin{minted}{text}
-host hpv2> interface eth0 ip4 192.168.25.65 ip6 123f:1234::1 
-host hpv2>
+tmp1:host hpv2> interface eth0 ip4 192.168.25.65 ip6 123f:1234::1 
+tmp1:host hpv2>
 \end{minted}
 
 Also this notation does the work:
 \begin{minted}{text}
->host hpv2 interface eth0 ip4 192.168.25.65 ip6 123f:1234::1 
->
+tmp1> host hpv2 interface eth0 ip4 192.168.25.65 ip6 123f:1234::1 
+tmp1>
 \end{minted}
 
 It is also possible to set attributes of more objects using one line. The objects must be nested.
 \begin{minted}{text}
->host hpv2 note "Some note" interface eth0 ip4 192.168.25.65 ip6 123f:1234::1 
->
+tmp1> host hpv2 note "Some note" interface eth0 ip4 192.168.25.65 ip6 123f:1234::1 
+tmp1>
 \end{minted}
 
 You can of course combine attribute settings with their removals of operations with sets as in this example:
 \begin{minted}{text}
->host hpv2 no note add service www interface eth0 ip4 192.168.25.65 
->
+tmp1> host hpv2 no note add service www interface eth0 ip4 192.168.25.65 
+tmp1>
 \end{minted}
 This example removes note from host "hpv2", adds identifier "www" to set named "service" and sets IP address of nested
 interface "eth0". When any of the objects does not exist, CLI will ask you, if you want to create it.

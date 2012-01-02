@@ -553,7 +553,7 @@ phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHa
 on_error<fail>(start, attributeFilterErrorHandler(_1, _2, _3, _4,
     phoenix::ref(attributes), phoenix::ref(sets), phoenix::ref(m_name), m_parent));
 on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4,
-    phoenix::ref(currentAttributeName), m_parent));
+    phoenix::ref(currentAttributeName), phoenix::ref(m_name), m_parent));
 \end{minted}
 
 You can see, that error handler are there the same as in {\tt AttributesSettingParser} and has also the same function here.
