@@ -13,7 +13,113 @@ database scheme, the process of the data conversion and the deployed output conf
 
 \section{Database Scheme}
 \label{sec:fzu-scheme}
-\todo{Lukas: fzu DB scheme}
+
+The Deska system ships with a sample database scheme which demonstrates all of the Deska's features, but is too simple
+to be directly usable for real-world needs of a typical data center.  We have therefore developed a second scheme, the
+{\tt fzu} one, which serves as an example of a database layout that could be used in production environment.
+
+\subsection{Supported Features}
+
+The very first requirement which is placed on the scheme is to contain all of the information which is already managed
+by the in-house application (see section \ref{sec:fzu-farmdb} further in this chapter) and make it available in an
+efficient and easy-to-use manner.  We have also decided to add a few experimental features which might provide further
+assistance with the everyday operation, like being able to keep a maintenance log of the hardware issues directly in the
+database instead of using a separate application.  This feature was added late in the system design on request of the
+Institute's administrators, but proved to be easy enough to implement thanks to the flexibility of the user-defined
+scheme.
+
+At the same time, we were forced to limit the scope creep of the whole system to maintain a reasonable level of
+usability.  One example of a feature which we have postponed is keeping track of the individual disk drives' serial
+numbers, a suggestion which appeared in November 2011.  The Deska system is ready to implement this
+feature,\footnote{It's just a matter of adding new kinds {\tt diskarray} and {\tt drive} embedded into each other and
+having the {\tt diskarray} be contain the existing {\tt box}, a setup which is already verified by the {\tt hardware}
+and {\tt switch} pairs and the embedded {\tt interface}.} but given that the {\tt fzu} database scheme already contains
+seventeen distinct kinds and that the source data for the individual serial numbers was incomplete at best,\footnote{The
+data came from a variety of Excel-based sources from multiple vendors, requiring a labour-intensive manual process which
+is clearly out-of-scope of the Deska project.} we have deemed this feature not important enough to warrant a late change
+of the scheme layout.
+
+\subsection{Deska Kinds}
+
+Most of the database focuses on keeping track of the individual servers.  Each server is represented by an instance of
+the {\tt hardware} kind which contains basic information like its serial numbers and a reference (see the {\tt
+REFERS\_TO} relation in \secref{sec:relation-refers-to}) to the corresponding hardware model, the {\tt modelhardware}
+object.  Rack placement of the server is implemented through the {\tt box} kind which is {\tt CONTAINABLE}
+(\secref{sec:relation-contains}) to the {\tt hardware}, and --- to reuse the existing code --- which also provides the
+same information through the {\tt CONTAINABLE} relation to the other kind which represent physical objects, the {\tt
+switch}.  At the same time, {\tt box} instances, when not contained into any other objects, model standalone
+``enclosures'' or physical racks.  Properties which are valid for multiple boxes at once are defined at the level of a
+{\tt modelbox}.
+
+Each server can be either kept out of operation, or be running a particular operating system and providing some
+services.  At the same time, the Institute of Physics also uses virtualization to consolidate their computing needs and
+increase resilience to various hardware issues.  The scheme therefore maintains a distinction between a logical {\tt
+host} and the underlying {\tt hardware}.  The {\tt host} object represent an instance of an operating system running on
+``some machine'', be it a virtual one or a real, physical server.  If the server is physical, the {\tt host} will
+contain a {\tt hardware} object, while in case the host is a virtual one, the {\tt host} contains a {\tt
+virtual\_hardware} instance.  In both cases, the {\tt host} will typically utilize the {\tt EMBED\_INTO} relation (see
+\secref{sec:relation-embed-into}) to embed network interfaces, objects of the {\tt interface} kind, to represent network
+connections.  An interface can be optionally plugged into a port of a {\tt switch}.  A switch is similar to the {\tt
+hardware} in that it contains an instance of the {\tt box} object to specify its physical location and uses the {\tt
+REFERS\_TO} to point to the corresponding {\tt modelswitch}.
+
+In order to streamline mass installation of new machines, the {\tt hardware} kind supports templates (see
+\secref{sec:relation-templatized}) with the {\tt hardware\_template} kind.  The provided conversion scripts do not use
+these templates directly, for the templates are intended to reduce the {\em human} effort required to process a delivery
+of {\em new} machines.
+
+Assignment of the logical services to the individual {\tt host}s is done through the {\tt service} kind.  Its usage
+accurately matches the description in \secref{sec:relation-multi-value-references} about object tagging.
+
+The scheme also contains kinds {\tt warranty\_contract} which store information about warranty and service agreements
+for each delivery of machines, a {\tt vendor} that keeps track about the manufacturer of individual items, a {\tt
+network} that provides information like the VLAN number and allowed IP address range for the network interfaces, and a
+pair of the {\tt extrahw} and {\tt modelextrahw} kinds that represent other pieces of equipment than servers and
+Ethernet switches and therefore serve as a ``catch-all'' storage for all other devices, from disk arrays to patch
+panels, rack blinds, cable holders and Fibre Channel switches.
+
+Finally, the {\tt formfactor} is used as a helper compatibility object which specifies which objects ``fit'' into
+physical boxes, so that one cannot ``insert'' a rack-mount server into a blade chassis, or a small form factor twin node
+directly into a rack, while the {\tt event} can be used as a log of all problems which concern a physical object of any
+kind.
+
+The following table provides a compact reference about the defined kinds:
+
+\begin{longtable}{ l | l}
+    \caption{Kinds defined in the FZÚ database scheme} \\
+    Kind & Description \\
+    \hline
+    \endhead
+    \label{tbl:fzu-kinds}
+    {\tt service} & A list of defined roles of the hosts, which is referenced from the {\tt host}'s {\tt service}
+    multi-value attribute \\
+    {\tt vendor} & A list of equipment manufacturers referenced from various {\tt model*} kinds \\
+    {\tt warranty\_contract} & Representation of a service contract and support agreement.  Instances of this kind are
+    typically referenced from multiple {\tt hardware}, {\tt switch} or {\tt extrahw} objects at once. \\
+    {\tt formfactor} & An auxiliary class serving as a target of the {\tt modelbox}'s attributes {\tt accepts\_inside}
+    and {\tt formfactor} that keeps physical compatibility of the box nesting \\
+    {\tt modelbox} & Shared properties of a box.  These objects shall define information like the outer dimensions of a
+    rack, number of internal bays which can accommodate further boxes or the outer and accepted form factors.  Instances
+    of this kind are associated to each {\tt box} either indirectly, through the corresponding {\tt modelhardware},
+    {\tt modelswitch} or {\tt modelextrahw} attributes, or --- in case of boxes without any piece of equipment to match
+    --- directly via the {\tt direct\_modelbox} attribute. \\
+    {\tt box} & Using one instance for each physical object located in a machine room, these objects specify their
+    physical placement \\
+    {\tt modelhardware} & Common hardware-related properties of a server like the memory, disk or CPU configuration \\
+    {\tt hardware} & A physical server \\
+    {\tt virtual\_hardware} & One object for each instance of a virtual machine which runs a given {\t host} \\
+    {\tt host} & An operating system instance running either on a physical hardware or inside a virtualized environment
+    \\
+    {\tt modelswitch} & Common properties of each model of an Ethernet switch \\
+    {\tt switch } & A physical Ethernet network switch \\
+    {\tt network} & Auxiliary object defining allowed IP addresses and VLANs for each logical network in use \\
+    {\tt interface} & A network interconnect from a {\tt host} (into which this instance is embedded) into an (optional)
+    {\tt switch} \\
+    {\tt event} & Represents one item in a log of a {\tt box}' issue history \\
+    {\tt modelextrahw} & A catch-all hardware for representing physical objects which are more complicated than a
+    ``dumb rack'', but are unusual enough to not warrant their own top-level kind \\
+    {\tt extrahw} & An instance of a special-purpose hardware of the {\tt modelextrahw} type
+\end{longtable}
 
 \section{Data conversion}
 \label{sec:fzu-farmdb}
