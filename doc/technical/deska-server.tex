@@ -239,16 +239,19 @@ created. And then final JSON is created and returned.
 And here is some example of SQL statement which is called:
 \begin{minted}{sql}
 SELECT host.service_templ --simple column definition
-,host.name,host.service,host.virtual_hardware_templ,
---column definition for uid column of template
+, host.name, host.service, host.virtual_hardware_templ,
+-- column definition for uid column of template
 host_template_get_name(host.template_host,$1) AS host_template
---column definition for uid column of reference
-,hardware_get_name(host.hardware,$1) AS hardware,
-host.note_host_templ,virtual_hardware_get_name(host.virtual_hardware,$1) AS virtual_hardware,
+-- column definition for uid column of reference
+, hardware_get_name(host.hardware,$1) AS hardware,
+host.note_host_templ, virtual_hardware_get_name(host.virtual_hardware, $1)
+  AS virtual_hardware,
 host.hardware_templ,
 host.note_host FROM
-host_resolved_data_template_info($1) AS host -- call function for get resolved data with template info
-LEFT OUTER JOIN hardware_resolved_data($1) AS hardware ON host.uid = hardware.host -- join host kind
+-- call function for get resolved data with template info
+host_resolved_data_template_info($1) AS host
+-- join host kind
+LEFT OUTER JOIN hardware_resolved_data($1) AS hardware ON host.uid = hardware.host
 WHERE hardware.name != $2 OR hardware.name IS NULL -- perform filter condition
 \end{minted}
 
@@ -264,17 +267,17 @@ See test results in \secref{sec:test-direct}
 \subsection{Getting data from tables - casting}
 \label{sec:cast}
 For performance reasons we do one more thing in column definition. It is casting.
-In pg-python extension, there is a function that from Postgresql types create native python types.
-It is called Postgres.convert\_postgres\_objects
+In pg-python extension, there is a function that from PostgreSQL types create native python types.
+It is called {\tt Postgres.convert\_\-postgres\_\-objects}
 and must be called for every result from database. But it supports only some types.
 Some of these types are converted in different way than we want.
 
 At first, we solved this with our own function, that did the transformation, but if it ran for every
-row and every column, it was very slow. So the most of these transformations is now done using Postgresql cast
+row and every column, it was very slow. So the most of these transformations is now done using PostgreSQL cast
 in SQL statements. It is much faster and saves memory (see \secref{sec:test-cast}
 
 The column definition is more complicated than we describe above. If
-Postgres.convert\_postgres\_objects function 
+{\tt Postgres.convert\_\-postgres\_\-objects} function 
 does not support conversion of given column's type, or do it in bad way for us, we add cast in column definition.
 For example if there is timestamp attribute, we add {\em ::text}, if it is ipv4 type, and we don't want
 the conversion with mask suffix, we use {\em host} function in column definition.
@@ -320,7 +323,7 @@ And as we can see, revision parameter is not used now, so if DBAPI specification
 we can transform this functions into views. 
 
 \subsection{Error handling}
-Here we try to explain work with exceptions in Deska database and Deska server. Postgresql functions can RAISE exception with given message and sqlstate.
+Here we try to explain work with exceptions in Deska database and Deska server. PostgreSQL functions can RAISE exception with given message and sqlstate.
 This sqlstate is like number of error. We use this to split possible exceptions into some categories - exception types. Exception in database is
 every unexpected or “bad” thing that occurs. It can be runtime error as well as constraint violation, or exception thrown explicitly by RAISE.
 
@@ -712,7 +715,8 @@ select box_add('h1');
 select box_add('h3');
 
 --select switch_add('h1');
---would raise exception (violates check constraint) - h1 switch and h1 hardware can not contain the same box
+--would raise exception (violates check constraint) as
+-- h1 switch and h1 hardware can not contain the same box
 select box_add('o1');
 select commitchangeset('r2');
 
@@ -914,7 +918,7 @@ Results are in tables \ref{tab:multi-reshost} and \ref{tab:multi-reshostv2}.
 \end{longtable}
 
 \subsection{Roles and permissions}
-We uses Postgresql roles to describe permissions to database objects (tables, functions etc.).
+We uses PostgreSQL roles to describe permissions to database objects (tables, functions etc.).
 The {\tt deska\_user} role, is for user, running CLI (and Deska server). This role
 has rights to execute all functions in json schema \footnote{These are all functions
 that are called by Deska server, except {\tt restoringCommit}}.
