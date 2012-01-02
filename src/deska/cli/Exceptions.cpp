@@ -67,8 +67,14 @@ std::string ParserException::dumpHelper(const std::string &className) const
     return ss.str();
 }
 
+const char * ParserException::what() const throw ()
+{
+    return dump().c_str();
+}
+
 #define DESKA_ECBODY(Class, Parent) \
 Class::Class(const std::string &message): Parent(message) {}\
+Class::~Class() throw () {} \
 Class::Class(const std::string &message, const std::string &input_, const std::string::const_iterator &where): \
         Parent(message, input_, where) {} \
 bool Class::eq(const std::exception &other) const \
