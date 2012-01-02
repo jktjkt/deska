@@ -2,29 +2,32 @@
 \documentclass[deska]{subfiles}
 \begin{document}
 
-\chapter{Configuring the Deska Schema}
+\chapter{Configuring the Deska Scheme}
 \label{sec:admin-dbscheme}
 
 \begin{abstract}
 This chapter leads the Deska administrator through the process of customizing the database scheme to individual site's
-needs, as well as through the deployment of the database side.
+needs and the deployment of the database side.
 \end{abstract}
 
-\section{Schema creation}
-After \todo{or Before} you get Deska software installed, you have to create {\em Deska schema}. If you work with
-deska-cli, you work with objects, its attributes and relations between them as told in \secref{sec:objects-and-relations}.
-In this chapter is described how kinds of these objects and relations between them are defined. Every kind can have some attributes. These attributes can have defined some constraints. And relations can be defined between kinds.
-All this is part of {\tt Deska schema}.
+\section{Creating the Scheme}
 
-For defining {\tt Deska schema} we use SQL tables, attributes (or columns), constraints and triggers.
-To define relations we use standard SQL foreign keys with small addition - special prefix of constraint name.
-The {\tt Deska schema} definition is in fact composed of standard SQL schema commands for creating standard SQL schema with some
-special requirements (will be described in \secref{sec:db-scheme-req}.
+Before the Deska system is usable, one has to configure it with a proper {\em Deska scheme}.  Users working with the
+{\tt deska-cli} work with kinds, object instances, their attributes and relations between them (consult
+\secref{sec:objects-and-relations}), and the {\em scheme} is where the Deska administrator can define how these features
+are going to look like.
+
+The primary language of defining the Deska scheme is the data definition language (DDL) of SQL.  Ordinary SQL tables are
+used for specifying supported kinds, the columns in there correspond to their attributes, and additional constraints and
+triggers place further limits to the data and define the Deska relations.  All of that is explained later in this
+chapter.
 
 \subsection{Kind Creation}
-If you want to create a kind, you need to create a table in SQL with the same name as your kind should have and with the same columns' names as your kind's attributes should have. Supported types of columns are listed in \secref{sec:db-att-types}. Requirementes on the tables are in \secref{sec:db-scheme-req}.
-We recommend to have one table in one SQL file. Start the name of the file with number,
-to determine the order in which files are loaded into the database.
+If you want to create a kind, you need to create a table in SQL with the same name as your kind should have and with the
+same column names as your kind's attributes should have.  Supported types of columns are listed in
+\secref{sec:db-att-types} and a list of requirements on the tables are in \secref{sec:db-scheme-req}.  On a coding style
+front,  it is recommended to have one table in each SQL file and prefix the file names with a numerical prefix to
+clearly specify the order in which they are created.
 
 \section{Requirements on the Table Layout}
 \label{sec:db-scheme-req}
@@ -34,12 +37,12 @@ Every SQL file should start with setting {\tt search\_path} to schemas {\tt prod
 Every SQL table provided by the user needs to:
 \begin{itemize}
     \item Have primary key column {\tt uid} of the {\tt bigint} type
-    \item Have unique, not null column {\tt name} of the {\tt identifier} type; the embedded tables should instead use a
+    \item Have a {\tt UNIQUE}, {\tt NOT NULL} column {\tt name} of the {\tt identifier} type; the embedded tables should instead use a
         unique pair of a {\tt uid} and a referencing column (see \secref{sec:db-scheme-refers-to} for an example)
     \item Use a sequence's {\tt nextval} as the default value of the column {\tt uid}
 \end{itemize}
 
-Following example shows a simplest table to be used in Deska.
+Following example shows a simplest table to be used in Deska:
 
 \begin{minted}{sql}
 SET search_path TO production, deska;
@@ -51,10 +54,10 @@ CREATE TABLE vendor (
     -- An internal primary key
     uid bigint DEFAULT nextval('vendor_uid')
         CONSTRAINT vendor_pk PRIMARY KEY,
-    -- Name is the user-visible identifier
+    -- Name as the user-visible identifier
     name identifier
         CONSTRAINT vendor_name_unique UNIQUE NOT NULL
-    --HERE can be placed kind attributes, contraints and relation definitions
+    -- Additional kind attributes, constraints and relation definitions shall be placed here
 );
 \end{minted}
 
@@ -83,7 +86,7 @@ handy in a typical data center environment.  Here is a list of the supported typ
 \end{itemize}
 
 \subsection{Relations Definition}
-Here we will describe how to add Deska relations (see \secref{sec:objects-and-relations-relations}) to modules.
+Here we will describe how to add Deska relations (see \secref{sec:objects-and-relations-relations}) to the defined kinds.
 
 \subsubsection{REFERS\_TO}
 \label{sec:db-scheme-refers-to}
@@ -159,7 +162,7 @@ column has to comply with following rules:
     \item The column shall be of the {\tt bigint} type
 \end{itemize}
 
-You can template only tables that have at least one column whose value could be inherited from its template, and columns
+You can template only tables that have at least one column whose value could be inherited from its template.  Columns
 that form a {\tt COMPOSITION}, a {\tt TEMPLATIZE} or an {\tt EMBED\_INTO} relation could not inherit their values and
 therefore do not count.
 
@@ -183,7 +186,10 @@ CREATE TABLE hardware (
 
 
 \subsubsection{Multi-value Reference}
-{\tt Multi-value} reference relation (see \secref{sec:relation-multi-value-references}) needs adding the foreign key constrain. This constraint has to comply with following rules:
+
+Multi-value reference relation (see \secref{sec:relation-multi-value-references}) needs adding the foreign key
+constraint complying with the following rules:
+
 \begin{itemize}
     \item The target module table has to be present in the database already
     \item The referring column forming the relation has to be of the {\tt identifier\_set} type
@@ -208,17 +214,22 @@ CREATE TABLE host (
 );
 \end{minted}
 
-\subsubsection{COMPOSITION}
-{\tt COMPOSITION} relation (see \secref{sec:relation-contains}) needs adding the foreign key constrain. This constraint has to comply with following rules:
+\subsubsection{Object Composition}
+
+The object composition (see \secref{sec:relation-contains}) needs adding the foreign key constrain. This constraint has
+to comply with following rules:
+
 \begin{itemize}
     \item The target module table has to be present in the database already
     \item The referring column forming the relation has to be of the {\tt bigint} type
     \item The name of the constraint shall start with the {\tt rconta\_} prefix
     \item The foreign key shall always reference the {\tt uid} column of the target table
 \end{itemize}
-In addition to requirements on module's foreign key, it is needed that:
+
+In addition to requirements on module's foreign key, it is also required that:
+
 \begin{itemize}
-    \item This module and referenced module do not have any attribute with the same name (of course except {\tt name} and {\tt uid})
+    \item This module and referenced module do not have any attribute with the same name besides {\tt name} and {\tt uid}
     \item The chain created by {\tt COMPOSITION} foreign keys of defined modules do not contain a cycle
 \end{itemize}
 
@@ -242,29 +253,39 @@ CREATE TABLE host (
 \end{minted}
 
 \section{Indexes}
-You can create indexes in {\tt Deska schema} for speed up some operations.
-At this time, {\tt Deska database} can use indexes while configuration generators run,
-and in deska-cli if you are not in changeset.
 
-Deska administrator should know how configuration generators works, and create index, if
-it can bring some speed up. Typically indexes should be created on columns, where 
-configuration generators searches for some values, or reference columns, where configuration generator
-searches in another kind (and do JOIN).
+Setting up indexes is a tricky business which cannot be solved by a few generic rules.  Under certain circumstances,
+adding an ``obviously beneficial'' index to a database can in fact lead to a reduction of performance.  Care shall
+therefore be taken before creating indexes and administrators shall always double-check that the real result with a
+production data forms a positive gain.
 
-\section{User access to Deska database}
-If user wants to use CLI, he must have user account on the server, where Deska server runs and 
-user account in Deska database.
-To add user to Deska database, run PostgreSQL console using commnad {\tt psql -U postgres -d deska\_database}
-and then perform these commands.
+The indexes created as a part of the scheme setup are maintained in the resulting database.  The indexes can be used by
+the underlying database engine when not querying for any specified version or when the configuration generators are run.
+
+\section{Accessing the Deska Database}
+
+In order to access the Deska database, one has to have access to a properly authorized account on the host where the
+Deska database runs.  After the basic account setup has been completed and the SSH key-based authentication works
+flawlessly, this is how to add the Joe Random User to the list of people who can manipulate the contents of the Deska
+database.  Please start the PostgreSQL console by the following command:
+
+{\tt psql -U postgres -d deska\_database}
+
+\ldots and perform these changes:
+
 \begin{minted}{sql}
 -- create user joe
 CREATE USER joe;
 -- then assign role deska_user
 GRANT deska_user TO joe;
--- if you want joe can use restore command in CLI
--- or if joe should access database directly and add indexes etc...
+-- If you want joe to have access to the "restore" command in the CLI,
+-- please also add the deska_admin role.  Kindly keep in mind that such
+-- users can also manipulate the database directly, adding or dropping indexes
+-- and generally causing a lot of trouble when not behaving responsibly:
 GRANT deska_admin TO joe;
 \end{minted}
 
+After you have added proper database roles for your users, please activate the database scheme by following instructions
+specified in \secref{sec:build-database-deployment}.
 
 \end{document}
