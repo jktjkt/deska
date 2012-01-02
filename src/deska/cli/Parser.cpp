@@ -52,6 +52,16 @@ std::vector<Db::Identifier> Parser::parserKindsEmbeds(const Db::Identifier &kind
     return d_ptr->parserKindsEmbeds(kindName);
 }
 
+std::vector<std::pair<Db::Identifier, Db::Identifier> > Parser::parserKindsContains(const Db::Identifier &kindName)
+{
+    return d_ptr->parserKindsContains(kindName);
+}
+
+std::vector<std::pair<Db::Identifier, Db::Identifier> > Parser::parserKindsContainable(const Db::Identifier &kindName)
+{
+    return d_ptr->parserKindsContainable(kindName);
+}
+
 std::vector<std::pair<Db::Identifier, std::string> > Parser::parserKindsAttributes(const Db::Identifier &kindName)
 {
     return d_ptr->parserKindsAttributes(kindName);

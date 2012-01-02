@@ -544,7 +544,9 @@ void UserInterfaceIO::printHelpKeyword(const std::string &keywordName, const std
 
 void UserInterfaceIO::printHelpKind(const std::string &kindName,
                                     const std::vector<std::pair<std::string, std::string> > &kindAttrs,
-                                    const std::vector<std::string> &nestedKinds)
+                                    const std::vector<std::string> &nestedKinds,
+                                    const std::vector<std::pair<std::string, std::string> > &containedKinds,
+                                    const std::vector<std::pair<std::string, std::string> > &containableKinds)
 {
     std::cout << "Content of " << kindName << ":" << std::endl;
     std::cout << indent(2, 1) << "Attributes:" << std::endl;
@@ -565,6 +567,30 @@ void UserInterfaceIO::printHelpKind(const std::string &kindName,
     } else {
         for (std::vector<std::string>::const_iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it)
             std::cout << indent(4, 1) << *it << std::endl;
+    }
+    std::cout << indent(2, 1) << "Contained kinds:" << std::endl;
+    if (containedKinds.empty()) {
+        std::cout << indent(4, 1) << "No contained kinds" << std::endl;
+    } else {
+        std::string::size_type maxWordWidth = 0;
+        for (std::vector<std::pair<std::string, std::string> >::const_iterator it = containedKinds.begin();
+             it != containedKinds.end(); ++it)
+             maxWordWidth = std::max(maxWordWidth, it->second.length());
+        for (std::vector<std::pair<std::string, std::string> >::const_iterator it = containedKinds.begin(); it != containedKinds.end(); ++it)
+            std::cout << indent(4, 1) << std::left << std::setw(maxWordWidth) << it->second <<
+                " via attribute " << it->first << std::endl;
+    }
+    std::cout << indent(2, 1) << "Containable in kinds:" << std::endl;
+    if (containableKinds.empty()) {
+        std::cout << indent(4, 1) << "Not containable in any kinds" << std::endl;
+    } else {
+        std::string::size_type maxWordWidth = 0;
+        for (std::vector<std::pair<std::string, std::string> >::const_iterator it = containableKinds.begin();
+             it != containableKinds.end(); ++it)
+             maxWordWidth = std::max(maxWordWidth, it->second.length());
+        for (std::vector<std::pair<std::string, std::string> >::const_iterator it = containableKinds.begin(); it != containableKinds.end(); ++it)
+            std::cout << indent(4, 1) << std::left << std::setw(maxWordWidth) << it->second <<
+                " via attribute " << it->first << std::endl;
     }
 }
 

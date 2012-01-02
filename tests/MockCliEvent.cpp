@@ -326,11 +326,15 @@ MockCliEvent MockCliEvent::printHelpKeyword(const std::string &keywordName, cons
 
 MockCliEvent MockCliEvent::printHelpKind(const std::string &kindName,
                                          const std::vector<std::pair<std::string, std::string> > &kindAttrs,
-                                         const std::vector<std::string> &nestedKinds)
+                                         const std::vector<std::string> &nestedKinds,
+                                         const std::vector<std::pair<std::string, std::string> > &containedKinds,
+                                         const std::vector<std::pair<std::string, std::string> > &containableKinds)
 {
     MockCliEvent res(EVENT_PRINT_HELP_KIND);
     res.str1 = kindName;
-    res.vectpair = kindAttrs;
+    res.vectpair1 = kindAttrs;
+    res.vectpair2 = containedKinds;
+    res.vectpair3 = containableKinds;
     res.vect = nestedKinds;
     return res;
 }
@@ -557,7 +561,9 @@ bool MockCliEvent::operator==(const MockCliEvent &other) const
            strbool == other.strbool &&
            std::equal(map1.begin(), map1.end(), other.map1.begin()) &&
            std::equal(map2.begin(), map2.end(), other.map2.begin()) &&
-           std::equal(vectpair.begin(), vectpair.end(), other.vectpair.begin()) &&
+           std::equal(vectpair1.begin(), vectpair1.end(), other.vectpair1.begin()) &&
+           std::equal(vectpair2.begin(), vectpair2.end(), other.vectpair2.begin()) &&
+           std::equal(vectpair3.begin(), vectpair3.end(), other.vectpair3.begin()) &&
            std::equal(vect.begin(), vect.end(), other.vect.begin()) &&
            std::equal(changesets.begin(), changesets.end(), other.changesets.begin(), testChangesetsEqual) &&
            std::equal(revisions.begin(), revisions.end(), other.revisions.begin(), testRevisionsEqual) &&
@@ -742,7 +748,7 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         out << "printHelpKeyword( \"" << m.str1 << "\", \"" << m.str2 << "\" )";
         break;
     case MockCliEvent::EVENT_PRINT_HELP_KIND:
-        out << "printHelpKind( \"" << m.str1 << "\", " << m.vectpair << ", " << m.vect << " )";
+        out << "printHelpKind( \"" << m.str1 << "\", " << m.vectpair1 << ", " << m.vect << ", " << m.vectpair2 << ", " << m.vectpair3 << " )";
         break;
     case MockCliEvent::EVENT_PRINT_HELP_SHOW_KINDS:
         out << "printHelpShowKinds( " << m.vect << " )";

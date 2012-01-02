@@ -124,6 +124,20 @@ public:
     */
     std::vector<Db::Identifier> parserKindsEmbeds(const Db::Identifier &kindName);
 
+    /** @short Obtains list of contained kinds for given kind name.
+    *   
+    *   @param kindName Kind name for which the contained kinds will be obtained
+    *   @return Vector of contained kinds with referencing attribute
+    */
+    std::vector<std::pair<Db::Identifier, Db::Identifier> > parserKindsContains(const Db::Identifier &kindName);
+
+    /** @short Obtains list of containable kinds for given kind name.
+    *   
+    *   @param kindName Kind name for which the containable kinds will be obtained
+    *   @return Vector of containable kinds with referencing attribute
+    */
+    std::vector<std::pair<Db::Identifier, Db::Identifier> > parserKindsContainable(const Db::Identifier &kindName);
+
     /** @short Obtains list of attributes for given kind name.
     *   
     *   @param kindName Kind name for which the attributes will be obtained

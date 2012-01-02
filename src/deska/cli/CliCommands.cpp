@@ -1234,7 +1234,8 @@ bool Help::operator()(const std::string &params)
         std::vector<std::string>::iterator itki = std::find(kinds.begin(), kinds.end(), params);
         if ( itki != kinds.end()) {
             ui->io->printHelpKind(params, ui->m_parser->parserKindsAttributes(params),
-                                  ui->m_parser->parserKindsEmbeds(params));
+                                  ui->m_parser->parserKindsEmbeds(params), ui->m_parser->parserKindsContains(params),
+                                  ui->m_parser->parserKindsContainable(params));
             return true;
         }
         ui->io->reportError("Error: No help entry for \"" + params + "\".");

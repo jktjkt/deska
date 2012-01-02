@@ -45,7 +45,7 @@
     static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type); \
     static MockCliEvent return##EFUNC(boost::call_traits<RET_TYPE>::param_type);
 #define FORWARD_2_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2) static MockCliEvent FUNC(TYPE_1, TYPE_2);
-#define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type);
+#define FORWARD_5(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3, TYPE_4, TYPE_5) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type, boost::call_traits<TYPE_4>::param_type, boost::call_traits<TYPE_5>::param_type);
 #define FORWARD_3_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, std::ostream&);
 #define FORWARD_4_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type, std::ostream&);
 
@@ -176,7 +176,9 @@ struct MockCliEvent
     boost::optional<Deska::Cli::AttributeDefinition> attr;
     std::map<std::string, std::string> map1;
     std::map<std::string, std::string> map2;
-    std::vector<std::pair<std::string, std::string> > vectpair;
+    std::vector<std::pair<std::string, std::string> > vectpair1;
+    std::vector<std::pair<std::string, std::string> > vectpair2;
+    std::vector<std::pair<std::string, std::string> > vectpair3;
     std::vector<std::string> vect;
     std::vector<Deska::Db::PendingChangeset> changesets;
     std::vector<Deska::Db::RevisionMetadata> revisions;

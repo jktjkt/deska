@@ -235,10 +235,14 @@ public:
     *   @param kindName Kind name
     *   @param kindAttrs Kind attributes
     *   @param nestedKinds Nested kinds
+    *   @param nestedKinds Contained kinds with referencing attribute name
+    *   @param nestedKinds Containable kinds with referencing attribute name
     */
     virtual void printHelpKind(const std::string &kindName,
                                const std::vector<std::pair<std::string, std::string> > &kindAttrs,
-                               const std::vector<std::string> &nestedKinds);
+                               const std::vector<std::string> &nestedKinds,
+                               const std::vector<std::pair<std::string, std::string> > &containedKinds,
+                               const std::vector<std::pair<std::string, std::string> > &containableKinds);
 
     /** @short Prints help for DB defined kinds.
     *

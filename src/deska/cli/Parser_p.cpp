@@ -236,6 +236,34 @@ std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbeds(const Db::Id
 
 
 template <typename Iterator>
+std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<Iterator>::parserKindsContains(const Db::Identifier &kindName)
+{
+    std::map<Db::Identifier, std::vector<std::pair<Db::Identifier, Db::Identifier> > >::const_iterator it =
+        contains.find(kindName);
+    if (it == contains.end()) {
+        return std::vector<std::pair<Db::Identifier, Db::Identifier> >();
+    } else {
+        return it->second;
+    }
+}
+
+
+
+template <typename Iterator>
+std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<Iterator>::parserKindsContainable(const Db::Identifier &kindName)
+{
+    std::map<Db::Identifier, std::vector<std::pair<Db::Identifier, Db::Identifier> > >::const_iterator it =
+        containable.find(kindName);
+    if (it == containable.end()) {
+        return std::vector<std::pair<Db::Identifier, Db::Identifier> >();
+    } else {
+        return it->second;
+    }
+}
+
+
+
+template <typename Iterator>
 std::vector<std::pair<Db::Identifier, std::string> > ParserImpl<Iterator>::parserKindsAttributes(const Db::Identifier &kindName)
 {
     std::vector<std::pair<Db::Identifier, std::string> > attrs;
@@ -1506,6 +1534,10 @@ template ParserImpl<iterator_type>::~ParserImpl();
 template std::map<std::string, std::string> ParserImpl<iterator_type>::parserKeywordsUsage();
 
 template std::vector<Db::Identifier> ParserImpl<iterator_type>::parserKindsEmbeds(const Db::Identifier &kindName);
+
+template std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<iterator_type>::parserKindsContains(const Db::Identifier &kindName);
+
+template std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<iterator_type>::parserKindsContainable(const Db::Identifier &kindName);
 
 template std::vector<std::pair<Db::Identifier, std::string> > ParserImpl<iterator_type>::parserKindsAttributes(const Db::Identifier &kindName);
 

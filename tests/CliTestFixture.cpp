@@ -41,14 +41,20 @@ void CliTestFixture::expect##EFUNC(TYPE_1 arg1, TYPE_2 arg2) \
 #define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) \
     FORWARD_2_RAW_ARGS(FUNC, EFUNC, boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type)
 
+#define FORWARD_5_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3, TYPE_4, TYPE_5) \
+void TestUserInterfaceIO::FUNC(TYPE_1 arg1, TYPE_2 arg2, TYPE_3 arg3, TYPE_4 arg4, TYPE_5 arg5) \
+{ tester->expectHelper(MockCliEvent::FUNC(arg1, arg2, arg3, arg4, arg5)); } \
+void CliTestFixture::expect##EFUNC(TYPE_1 arg1, TYPE_2 arg2, TYPE_3 arg3, TYPE_4 arg4, TYPE_5 arg5) \
+{ cliEvents.push(MockCliEvent::FUNC(arg1, arg2, arg3, arg4, arg5)); }
+
+#define FORWARD_5(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3, TYPE_4, TYPE_5) \
+    FORWARD_5_RAW_ARGS(FUNC, EFUNC, boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type, boost::call_traits<TYPE_4>::param_type, boost::call_traits<TYPE_5>::param_type)
+
 #define FORWARD_3_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
 void TestUserInterfaceIO::FUNC(TYPE_1 arg1, TYPE_2 arg2, TYPE_3 arg3) \
 { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2, arg3)); } \
 void CliTestFixture::expect##EFUNC(TYPE_1 arg1, TYPE_2 arg2, TYPE_3 arg3) \
 { cliEvents.push(MockCliEvent::FUNC(arg1, arg2, arg3)); }
-
-#define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
-    FORWARD_3_RAW_ARGS(FUNC, EFUNC, boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type)
 
 #define FORWARD_3_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2) \
     FORWARD_3_RAW_ARGS(FUNC, EFUNC, boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, std::ostream &)
