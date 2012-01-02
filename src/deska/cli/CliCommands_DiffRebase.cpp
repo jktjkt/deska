@@ -676,14 +676,14 @@ bool Rebase::operator()(const std::string &params)
     ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
     for (std::vector<Db::ObjectModificationResult>::iterator it = externModifications.begin();
          it != externModifications.end();) {
-        if (boost::apply_visitor(modificationBackupChecker, *it))
+        if (!boost::apply_visitor(modificationBackupChecker, *it))
             externModifications.erase(it);
         else
             ++it;
     }
     for (std::vector<Db::ObjectModificationResult>::iterator it = ourModifications.begin();
          it != ourModifications.end();) {
-        if (boost::apply_visitor(modificationBackupChecker, *it))
+        if (!boost::apply_visitor(modificationBackupChecker, *it))
             ourModifications.erase(it);
         else
             ++it;
