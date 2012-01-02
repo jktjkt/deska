@@ -96,11 +96,11 @@ documentation.}
 \begin{minted}{text}
 > start
 Changeset tmp4 started.
-> hardware srv123
+tmp4> hardware srv123
 Object(s) hardware srv123 do(es) not exist. Create? y
-hardware srv123> inside L01
+tmp4:hardware srv123> inside L01
 Object(s) rack-placement srv123 do(es) not exist. Create and connect to hardware srv123? y
-hardware srv123> rack_pos_y 12
+tmp4:hardware srv123> rack_pos_y 12
 \end{minted}
 
 \subsection{Step Two: Verifying the Results}
@@ -110,7 +110,7 @@ properties, we can already check the {\em impact} of the change which we have ju
 reviewing the modifications performed in the Deska database:
 
 \begin{minted}{diff}
-hardware srv123> diff
+tmp4:hardware srv123> diff
 + box srv123
 +     hardware srv123
 +     inside L01
@@ -127,7 +127,7 @@ typos.  We shall therefore check about how are these modifications going to affe
 various services:
 
 \begin{minted}{diff}
-hardware srv123> configdiff
+tmp4:hardware srv123> configdiff
 diff --git a/RackView.qml b/RackView.qml
 index c34796f..bccd828 100644
 --- a/RackView.qml
@@ -151,7 +151,7 @@ The changes look like a direct result of the newly added data, and therefore we 
 database into the production environment:
 
 \begin{minted}{text}
-hardware srv123> commit
+tmp4:hardware srv123> commit
 Commit message: Adding a box for the new delivery
 Changeset tmp4 commited to r4.
 >
