@@ -740,7 +740,7 @@ bool Rebase::operator()(const std::string &params)
             if ((ite != externModifications.begin()) || (ito != ourModifications.begin()))
                 ofs << boost::apply_visitor(bothModificationConverter2, *ite, *lastModif);
             else
-                ofs << boost::apply_visitor(externModificationConverter, *ite);
+                ofs << boost::apply_visitor(bothModificationConverter, *ite);
             lastModif = ite;
             ++ite;
             ++ito;
@@ -748,7 +748,7 @@ bool Rebase::operator()(const std::string &params)
             if ((ite != externModifications.begin()) || (ito != ourModifications.begin()))
                 ofs << boost::apply_visitor(ourModificationConverter2, *ito, *lastModif);
             else
-                ofs << boost::apply_visitor(externModificationConverter, *ito);
+                ofs << boost::apply_visitor(ourModificationConverter, *ito);
             lastModif = ito;
             ++ito;
         }
@@ -765,7 +765,7 @@ bool Rebase::operator()(const std::string &params)
         if ((ite != externModifications.begin()) || (ito != ourModifications.begin()))
             ofs << boost::apply_visitor(ourModificationConverter2, *ito, *lastModif);
         else
-            ofs << boost::apply_visitor(externModificationConverter, *ito);
+            ofs << boost::apply_visitor(ourModificationConverter, *ito);
         lastModif = ito;
         ++ito;
     }
@@ -859,13 +859,14 @@ bool Rebase::operator()(const std::string &params)
     ui->m_dbInteraction->resumeChangeset(oldChangeset);
     ui->m_dbInteraction->abortChangeset();
     ui->m_dbInteraction->resumeChangeset(newChangeset);
+    ui->currentChangeset = newChangeset;
+
     try {
         ui->m_dbInteraction->unlockCurrentChangeset();
     } catch (Db::ChangesetLockingError &e) {
         ui->io->reportError("Error while unlocking new changeset after rebase.");
         return false;
     }
-    ui->currentChangeset = newChangeset;
     ui->io->printMessage("Rebase successful.");
     return true;
 }
