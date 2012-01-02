@@ -73,7 +73,8 @@ AttributesSettingParser<Iterator>::AttributesSettingParser(const Db::Identifier 
     // to on_error<rethrow>.
     //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
     //                                          phoenix::ref(m_name), m_parent));
-    on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
+    on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
+        phoenix::ref(m_name), m_parent));
 }
 
 

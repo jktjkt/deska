@@ -71,8 +71,10 @@ IdentifiersSetsParser<Iterator>::IdentifiersSetsParser(const Db::Identifier &kin
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
     on_error<fail>(start, identifiersSetsErrorHandler(_1, _2, _3, _4,
                                                       phoenix::ref(sets), phoenix::ref(m_name), m_parent));
-    on_error<fail>(dispatchAdd, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentSetName), m_parent));
-    on_error<fail>(dispatchRemove, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentSetName), m_parent));
+    on_error<fail>(dispatchAdd, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentSetName),
+        phoenix::ref(m_name), m_parent));
+    on_error<fail>(dispatchRemove, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentSetName),
+        phoenix::ref(m_name), m_parent));
 }
 
 
