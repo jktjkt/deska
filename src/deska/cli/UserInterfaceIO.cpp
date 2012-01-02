@@ -255,7 +255,10 @@ std::string ModificationPrinter::operator()(const Db::SetAttributeModification &
              << "\e[0m" << std::endl;
 
     if ((!nextObject) || (nextObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName))) {
-        --printDepth;
+        // FIXME: Tomas, fix the assumptions behind this one.
+        if (printDepth > 0) {
+            --printDepth;
+        }
         if (createdObj)
             ostr << "\e[32m+ " << indent(printDepth) << "end\e[0m" << std::endl;
         else
