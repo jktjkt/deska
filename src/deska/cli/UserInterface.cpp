@@ -93,13 +93,20 @@ bool UserInterface::applyCreateObject(const ContextStack &context,
                                       const Db::Identifier &kind, const Db::Identifier &object,
                                       ContextStackItem &newItem)
 {
+    bool newItemFilter = false;
     try {
         newItem = m_dbInteraction->createObject(context);
+        newItemFilter = (newItem.itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER);
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
+        if (object.empty()) {
+            io->reportError("Sorry, object(s) you are attempting to create has been deleted in this changeset, and therefore cannot be created as a brand new instance.");
+            return false;
+        }
         if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
             m_dbInteraction->restoreDeletedObject(context);
-            newItem = ContextStackItem(kind, object);
+            if (!newItemFilter)
+                newItem = ContextStackItem(kind, object);
             return true;
         } else {
             return false;
@@ -107,6 +114,12 @@ bool UserInterface::applyCreateObject(const ContextStack &context,
     } catch (Deska::Db::AlreadyExistsError &e) {
         std::ostringstream ostr;
         ostr << "Object " << ObjectDefinition(kind,object) << " already exists!";
+        io->reportError(ostr.str());
+        parsingFailed = true;
+        return false;
+    } catch (MassCreatingEmbeddedError &e) {
+        std::ostringstream ostr;
+        ostr << e.what();
         io->reportError(ostr.str());
         parsingFailed = true;
         return false;
@@ -125,13 +138,20 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
     }
 
     // Object does not exist -> try to create it
+    bool newItemFilter = false;
     try {
         newItem = m_dbInteraction->createObject(context);
+        newItemFilter = (newItem.itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER);
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
+        if (object.empty()) {
+            io->reportError("Sorry, object(s) you are attempting to create has been deleted in this changeset, and therefore cannot be created as a brand new instance.");
+            return false;
+        }
         if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
             m_dbInteraction->restoreDeletedObject(context);
-            newItem = ContextStackItem(kind, object);
+            if (!newItemFilter)
+                newItem = ContextStackItem(kind, object);
             return true;
         } else {
             return false;

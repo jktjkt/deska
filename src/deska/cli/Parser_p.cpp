@@ -206,6 +206,7 @@ std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
     std::map<std::string, std::string> usages;
     usages["create"] = "Creates object given as parameter (e.g. create hardware hp456). Longer parameters are also allowed (e.g. create host golias120 interface eth0) This will create both objects.";
     usages["new"] = "Creates a new object of kind given as parameter. Name will be generated (e.g. new failure).";
+    // FIXME: "Implement last in the DB"
     //usages["last"] = "Selects an object of given kind with the highest numerical name (e.g. last failure).";
     usages["all"] = "Selects all objects of given kind (e.g. all host).";
     usages["delete"] = "Deletes object given as parameter (e.g. delete hardware hp456). Longer parameters are also allowed (e.g. delete host golias120 interface eth0) This will delete only interface eth0 in the object host golias120.";
@@ -335,6 +336,21 @@ template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
 {
     std::vector<Db::Identifier> objectNames = pathToVector(name);
+    Db::Identifier embMeasure = kind;
+    unsigned int eDepth = 0;
+    for (;;) {
+        std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> >::const_iterator embM =
+            embeddedInto.find(embMeasure);
+        if (embM == embeddedInto.end())
+            break;
+        ++eDepth;
+        embMeasure = embM->second.second;
+    }
+    if ((contextStack.size() + objectNames.size() - 1) != eDepth) {
+        addParseError(ParseError<Iterator>(kind, name, PARSE_ERROR_TYPE_KIND_NESTING));
+        parsingSucceededActions = false;
+        return;
+    }
     std::vector<std::pair<Db::Identifier, Db::Identifier> > objects;
     std::vector<Db::Identifier>::reverse_iterator it = objectNames.rbegin();
     objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(kind, *it));
@@ -1080,19 +1096,30 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
         // Do not add completions of attributes when in non-standard mode.
         if (parsingMode == PARSING_MODE_STANDARD) {
             // Add names of attributes of current kind
+            bool someAttrs = false;
             std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(contextStack.back().kind);
+            someAttrs = someAttrs || !attributes.empty();
             for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-                possibilities.push_back(line + it->name);
+                std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[contextStack.back().kind].begin(),
+                    roAttributes[contextStack.back().kind].end(), it->name);
+                if (itroat == roAttributes[contextStack.back().kind].end()) {
+                    possibilities.push_back(line + it->name);
+                }
             }
             for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator itm = 
                 contains[contextStack.back().kind].begin(); itm != contains[contextStack.back().kind].end(); ++itm) {
                 std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(itm->second);
+                someAttrs = someAttrs || !attributes.empty();
                 for (std::vector<Db::KindAttributeDataType>::iterator it = 
                     attributes.begin(); it != attributes.end(); ++it) {
-                    possibilities.push_back(line + it->name);
+                    std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[itm->second].begin(),
+                        roAttributes[itm->second].end(), it->name);
+                    if (itroat == roAttributes[itm->second].end()) {
+                        possibilities.push_back(line + it->name);
+                    }
                 }
             }
-            if (!attributes.empty()) {
+            if (someAttrs) {
                 possibilities.push_back(line + "no");
                 if (containsIdentifiersSet(contextStack.back().kind)) {
                     possibilities.push_back(line + "add");
@@ -1108,6 +1135,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
         }
         if (!embededKinds.empty()) {
             possibilities.push_back(line + "new");
+            // FIXME: "Implement last in the DB"
             //possibilities.push_back(line + "last");
             possibilities.push_back(line + "all");
             if (line.empty()) {
