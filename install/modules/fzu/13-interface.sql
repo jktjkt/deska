@@ -46,7 +46,7 @@ BEGIN
 
 	SELECT port_validity_regexp INTO ports_regexp FROM switch JOIN modelswitch ON (modelswitch.uid = switch.modelswitch) WHERE switch.uid = NEW.switch;
 	IF NEW.port !~ ports_regexp THEN
-		RAISE EXCEPTION 'Switch port % does not match port_validity_regexp "%"!', NEW.switch_pos, ports_regexp;
+		RAISE EXCEPTION 'Switch port % does not match port_validity_regexp "%"!', NEW.port, ports_regexp;
 	END IF;
 	RETURN NEW;
 END
@@ -56,3 +56,29 @@ LANGUAGE plpgsql;
 CREATE TRIGGER switch_ports_check BEFORE INSERT OR UPDATE ON interface FOR EACH ROW
 	EXECUTE PROCEDURE interface_check();
 
+-- function checking ports number
+CREATE FUNCTION ports_check()
+RETURNS TRIGGER
+AS
+$$
+DECLARE port text;
+        ports_regexp text;
+BEGIN
+	--check if find not matching port in switch
+        FOR port, ports_regexp IN SELECT interface.port, modelswitch.port_validity_regexp FROM interface
+                JOIN switch ON (interface.switch = switch.uid)
+                JOIN modelswitch ON (modelswitch.uid = switch.modelswitch)
+                WHERE interface.port !~ modelswitch.port_validity_regexp
+	LOOP
+                RAISE EXCEPTION 'Switch port % does not match port_validity_regexp "%"!', port, ports_regexp;
+        END LOOP;
+	RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+-- check ports if modelswitch or switch changes
+CREATE TRIGGER switch_ports_check_modelswitch AFTER INSERT OR UPDATE ON modelswitch FOR EACH ROW
+	EXECUTE PROCEDURE ports_check();
+CREATE TRIGGER switch_ports_check_switch AFTER INSERT OR UPDATE ON switch FOR EACH ROW
+	EXECUTE PROCEDURE ports_check();

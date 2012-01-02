@@ -57,12 +57,14 @@ KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName,
     // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
     // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
     // require more input on the end of the line, which is side effect of eps usage in this way.
-    start = specialFilter | normalFilter;
+    
+    // FIXME: "Implement last in the DB"
+    //start = specialFilter | normalFilter;
+    start = specialFilterA | normalFilter;
     
     normalFilter = (eps(!_a) > dispatch >> -eoi[_a = true]);
 
-    // Hack: disable the "last" filter.  I have no idea about how to do that properly.
-    specialFilter = specialFilterA | specialFilterA;
+    specialFilter = specialFilterA | specialFilterL;
 
     specialFilterL = (qi::lit("last") > lastKind);
 
