@@ -865,6 +865,7 @@ bool Rebase::operator()(const std::string &params)
         ui->io->reportError("Error while unlocking new changeset after rebase.");
         return false;
     }
+    ui->currentChangeset = newChangeset;
     ui->io->printMessage("Rebase successful.");
     return true;
 }

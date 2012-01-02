@@ -1,0 +1,299 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass[deska]{subfiles}
+\begin{document}
+
+\subsection{SQL Generator Example}
+\label{sec:sql-gen-example}
+
+Here is an example how the stored procedures are generated.  This example shows generation of set attribute functions.
+
+{\tt Schema} class explores structure of each module table which is in the user defined schema. For each attribute of
+this table, an appropriate function for setting this attribute is generated.
+
+Set attribute functions for attributes which refer to {\tt uid} column of some table differ from functions for
+attributes which do not refer to any {\tt uid} column (see \secref{sec:deska-db-ver-data-modif}).
+
+\subsubsection{Ordinary column}
+In case when the column does not refer to any {\tt uid} column, {\tt Schema} class calls {\tt gen\_set} method of the
+{\tt Table} class. The {\tt gen\_set} method uses constant with following string prototype of the set attribute
+function:
+
+\begin{minted}{python}
+    set_string = '''CREATE FUNCTION 
+    %(tbl)s_set_%(colname)s(IN name_ text,IN value text)
+    RETURNS integer
+    AS
+    $$
+    DECLARE ver bigint;
+        rowuid bigint;
+        tmp bigint;
+    BEGIN
+        --for modifications we need to have opened changeset, this function raises exception
+        -- in case we don't have
+        SELECT get_current_changeset() INTO ver;
+        SELECT %(tbl)s_get_uid(name_) INTO rowuid;
+        --not found in case there is no object with name name_ in history
+        IF NOT FOUND THEN
+            RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+        END IF;
+        -- try if there is already line for current version
+        SELECT uid INTO tmp FROM %(tbl)s_history
+            WHERE uid = rowuid AND version = ver;
+        --object with given name was not modified in this version
+        --we need to get its current data to this version
+        IF NOT FOUND THEN
+            INSERT INTO %(tbl)s_history (%(columns)s,version)
+                SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver)))
+                  WHERE uid = rowuid;
+        END IF;
+        --set new value in %(colname)s column
+        UPDATE %(tbl)s_history SET %(colname)s = CAST (value AS %(coltype)s), version = ver
+            WHERE uid = rowuid AND version = ver;
+
+        --flag is_generated set to false
+        UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+        RETURN 1;
+    END
+    $$
+    LANGUAGE plpgsql SECURITY DEFINER;
+'''
+\end{minted}
+
+The mapping keys are inside the {\tt gen\_set} function replaced with appropriate strings. The mapping key {\tt tbl} is
+replaced with name of the table, {\tt colname} with name of the column, {\tt columns} with a list of the table's columns
+and {\tt coltype} with the type of the column.
+
+The following example shows a function generated for table {\tt hardware} and its attribute {\tt purchase}:
+
+\begin{minted}{sql}
+CREATE FUNCTION
+    hardware_set_purchase(IN name_ text,IN value text)
+    RETURNS integer
+    AS
+    $$
+    DECLARE ver bigint;
+        rowuid bigint;
+        tmp bigint;
+    BEGIN
+        --for modifications we need to have opened changeset, this function raises exception
+        -- in case we don't have
+        SELECT get_current_changeset() INTO ver;
+        SELECT hardware_get_uid(name_) INTO rowuid;
+        --not found in case there is no object with name name_ in history
+        IF NOT FOUND THEN
+            RAISE 'No hardware named %. Create it first.',name_ USING ERRCODE = '70021';
+        END IF;
+        -- try if there is already line for current version
+        SELECT uid INTO tmp FROM hardware_history
+            WHERE uid = rowuid AND version = ver;
+        --object with given name was not modified in this version
+        --we need to get its current data to this version
+        IF NOT FOUND THEN
+            INSERT INTO hardware_history (box,purchase,vendor,uid,template_hw,note,
+                    host,name,version)
+                SELECT box,purchase,vendor,uid,template_hw,note,host,name,ver FROM
+                    hardware_data_version(id2num(parent(ver))) WHERE uid = rowuid;
+        END IF;
+        --set new value in purchase column
+        UPDATE hardware_history SET purchase = CAST (value AS date), version = ver
+            WHERE uid = rowuid AND version = ver;
+
+        --flag is_generated set to false
+        UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+        RETURN 1;
+    END
+    $$
+    LANGUAGE plpgsql SECURITY DEFINER;
+
+\end{minted}
+
+\subsubsection{Column Referring to the uid Column}
+
+In case when the column refers to the {\tt uid} column of another table, the {\tt Schema} class calls the {\tt
+gen\_set\_ref\_uid} method of the {\tt Table} class. The {\tt gen\_set\_ref\_uid} method uses constant with following
+string prototype of the set attribute function:
+
+\begin{minted}{python}
+    set_fk_uid_string = '''CREATE FUNCTION
+    %(tbl)s_set_%(colname)s(IN name_ text,IN value text)
+    RETURNS integer
+    AS
+    $$
+    DECLARE ver bigint;
+        refuid bigint;
+        rowuid bigint;
+        tmp bigint;
+    BEGIN
+        SELECT get_current_changeset() INTO ver;
+        --value is name of object in reftable
+        --we need to know uid of referenced object instead of its name
+        IF value IS NULL THEN
+            refuid = NULL;
+        ELSE
+            SELECT %(reftbl)s_get_uid(value) INTO refuid;
+        END IF;
+
+        SELECT %(tbl)s_get_uid(name_) INTO rowuid;
+        -- try if there is already line for current version
+        SELECT uid INTO tmp FROM %(tbl)s_history
+            WHERE uid = rowuid AND version = ver;
+        --object with given name was not modified in this version
+        --we need to get its current data to this version
+        IF NOT FOUND THEN
+            INSERT INTO %(tbl)s_history (%(columns)s,version)
+                SELECT %(columns)s,ver FROM 
+                %(tbl)s_data_version(id2num(parent(ver)))
+                WHERE uid = rowuid;
+        END IF;
+        --set column to refuid - uid of referenced object
+        UPDATE %(tbl)s_history SET %(colname)s = refuid
+            WHERE uid = rowuid AND version = ver;
+
+        --flag is_generated set to false
+        UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+        RETURN 1;
+    END
+    $$
+    LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+\end{minted}
+
+In this case, the mapping key {\tt tbl} is replaced with name of the table, {\tt colname} with name of the column, {\tt
+columns} with list of the table's columns and {\tt reftbl} with name of the destination table (a table to whose {\tt
+uid} column the column in question refers).
+
+This is how a function generated for {\tt hardware}'s {\tt vendor} looks like:
+
+\begin{minted}{sql}
+CREATE FUNCTION
+    hardware_set_vendor(IN name_ text,IN value text)
+    RETURNS integer
+    AS
+    $$
+    DECLARE ver bigint;
+        refuid bigint;
+        rowuid bigint;
+        tmp bigint;
+    BEGIN
+        SELECT get_current_changeset() INTO ver;
+        --value is name of object in reftable
+        --we need to know uid of referenced object instead of its name
+        IF value IS NULL THEN
+            refuid = NULL;
+        ELSE
+            SELECT vendor_get_uid(value) INTO refuid;
+        END IF;
+
+        SELECT hardware_get_uid(name_) INTO rowuid;
+        -- try if there is already line for current version
+        SELECT uid INTO tmp FROM hardware_history
+            WHERE uid = rowuid AND version = ver;
+        --object with given name was not modified in this version
+        --we need to get its current data to this version
+        IF NOT FOUND THEN
+            INSERT INTO hardware_history (box,purchase,vendor,uid,template_hw,note,host,name,version)
+                SELECT box,purchase,vendor,uid,template_hw,note,host,name,ver
+                FROM hardware_data_version(id2num(parent(ver)))
+                WHERE uid = rowuid;
+        END IF;
+        --set column to refuid - uid of referenced object
+        UPDATE hardware_history SET vendor = refuid
+            WHERE uid = rowuid AND version = ver;
+
+        --flag is_generated set to false
+        UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+        RETURN 1;
+    END
+    $$
+    LANGUAGE plpgsql SECURITY DEFINER;
+\end{minted}
+
+\subsubsection{Identifier\_set Column}
+
+In case when the column refers to a set of identifiers (see \secref{sec:relation-multi-value-references}), the {\tt
+Schema} class calls {\tt gen\_set\_refuid\_set},  {\tt gen\_refuid\_set\_insert} and {\tt gen\_refuid\_set\_remove}
+methods of the {\tt Table} class.
+
+The {\tt gen\_set\_refuid\_set} method uses constant with following string prototype for generating the set attribute
+function:
+
+\begin{minted}{python}
+    set_refuid_set_string = '''CREATE FUNCTION
+    %(tbl)s_set_%(colname)s(IN name_ text,IN value text[])
+    RETURNS integer
+    AS
+    $$
+    DECLARE
+        ver bigint;
+    BEGIN
+        ver = get_current_changeset();
+
+        --flag is_generated set to false
+        UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+
+        BEGIN
+            --row is inserted because of diff and changes between versions
+            --this means object was modified
+            INSERT INTO %(tbl)s_history (%(columns)s,version)
+                SELECT %(columns)s,ver FROM
+                %(tbl)s_data_version(id2num(parent(ver)))
+                WHERE name = name_;
+        EXCEPTION
+            WHEN unique_violation THEN
+            -- do nothing
+        END;
+        RETURN genproc.inner_%(tbl)s_%(colname)s_set_%(colname)s(name_, value);
+    END
+    $$
+    LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+\end{minted}
+
+Similar to the situation discussed above, the mapping key {\tt tbl} is replaced with name of the table, the {\tt
+colname} with name of the column and {\tt columns} with a list of the table's columns.  Functions {\tt
+inner\_\%(tbl)s\_\%(colname)s\_set\_\%(colname)s} are generated by the {\tt Multiref} class.   These functions take care
+of performing the necessary modification of an inner table that stores identifier set of the {\tt tbl} table's {\tt
+colname} column.
+
+This is how a function generated for {\tt host}'s {\tt service} attribute looks like:
+
+\begin{minted}{sql}
+CREATE FUNCTION
+    host_set_service(IN name_ text,IN value text[])
+    RETURNS integer
+    AS
+    $$
+    DECLARE
+        ver bigint;
+    BEGIN
+        ver = get_current_changeset();
+
+        --flag is_generated set to false
+        UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+
+        BEGIN
+            --row is inserted because of diff and changes between versions
+            --this means object was modified
+            INSERT INTO host_history (hardware,virtual_hardware,uid,service,name,version)
+                SELECT hardware,virtual_hardware,uid,service,name,ver FROM
+                host_data_version(id2num(parent(ver))) WHERE name = name_;
+        EXCEPTION
+            WHEN unique_violation THEN
+            -- do nothing
+        END;
+        RETURN genproc.inner_host_service_set_service(name_, value);
+    END
+    $$
+    LANGUAGE plpgsql SECURITY DEFINER;
+\end{minted}
+
+Functions {\tt gen\_refuid\_set\_insert} and {\tt gen\_refuid\_set\_remove} generate functions \\ {\tt
+\%(tbl)s\_set\_\%(colname)s\_insert} and {\tt \%(tbl)s\_set\_\%(colname)s\_remove} in the same way as the {\tt
+gen\_set\_refuid\_set}, they just call functions {\tt inner\_\%(tbl)s\_set\_\%(colname)s\_insert} and {\tt
+inner\_\%(tbl)s\_set\_\%(colname)s\_remove} (which are generated by {\tt Multiref} class).  The functions {\tt
+inner\_\%(tbl)s\_set\_\%(colname)s\_insert} and {\tt inner\_\%(tbl)s\_set\_\%(colname)s\_remove} insert or remove item
+into or from the identifier set.
+
+\end{document} 
