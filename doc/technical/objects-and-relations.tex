@@ -157,12 +157,12 @@ particularly compelling feature, notably for {\em tagging}.
 
 Tagging is probably a well-known concept from the general-purpose computing experience. An object can be tagged by a set
 of labels, which generally refer to identifiers of other objects.  In real life, a photo gets tagged with names of
-people who are on the picture.  In a data center, each server gets tagged with several roles that it fulfils; for
-example, machine {\tt srv012} can act as a web server and an MX host at the same time, and hence shall get two tags, the
-{\tt www} and {\tt smtp} ones.
+people who are on the picture.  In a data center, each server gets tagged with several roles that it fulfils, one for
+each service that it shall offer; for example, machine {\tt srv012} can act as a web server and an MX host at the same
+time, and hence shall get two tags, the {\tt www} and {\tt smtp} ones.
 
 In Deska, this feature is provided by the combination of the {\tt identifier\_set} attribute data type and the {\tt
-REFERS\_TO} relation.  In our example, the {\tt role} is a standalone kind, and the {\tt host} kind has an attribute
+REFERS\_TO} relation.  In our example, the {\tt service} is a standalone kind and the {\tt host} kind has an attribute
 {\tt services} of type {\tt identifier\_set}.  Where the RDBMS equivalent of tagging would involve dealing with an
 auxiliary table just for the mapping, the Deska DBAPI provides an abstraction without any extra kinds.
 
