@@ -63,14 +63,17 @@ AS
 $$
 DECLARE port text;
         ports_regexp text;
+	interface bigint;
+	modelswich text;
 BEGIN
 	--check if find not matching port in switch
-        FOR port, ports_regexp IN SELECT interface.port, modelswitch.port_validity_regexp FROM interface
+        FOR port, ports_regexp, interface, modelswich IN
+	SELECT interface.port, modelswitch.port_validity_regexp,interface.uid,modelswitch.name FROM interface
                 JOIN switch ON (interface.switch = switch.uid)
                 JOIN modelswitch ON (modelswitch.uid = switch.modelswitch)
                 WHERE interface.port !~ modelswitch.port_validity_regexp
 	LOOP
-                RAISE EXCEPTION 'Switch port % does not match port_validity_regexp "%"!', port, ports_regexp;
+                RAISE EXCEPTION 'Switch port "%" of interface "%" does not match port_validity_regexp "%" of modelbox "%"!', port,interface_get_name(interface) ports_regexp, modelswich;
         END LOOP;
 	RETURN NEW;
 END
@@ -82,3 +85,30 @@ CREATE TRIGGER switch_ports_check_modelswitch AFTER INSERT OR UPDATE ON modelswi
 	EXECUTE PROCEDURE ports_check();
 CREATE TRIGGER switch_ports_check_switch AFTER INSERT OR UPDATE ON switch FOR EACH ROW
 	EXECUTE PROCEDURE ports_check();
+
+-- function checking ips in network
+CREATE FUNCTION network_check()
+RETURNS TRIGGER
+AS
+$$
+DECLARE network text;
+        ip ipv4;
+        net ipv4;
+        interface bigint;
+BEGIN
+	--check if find not matching ips in network
+        FOR network, interface, ip, net IN
+	SELECT network.name,interface.uid,interface.ip4,set_masklen(network.ip4,network.cidr4)  FROM interface
+                JOIN network ON (interface.network = network.uid)
+                WHERE NOT interface.ip4 << set_masklen(network.ip4,network.cidr4)
+	LOOP
+                RAISE EXCEPTION 'IPv4 "%" of interface "%" is not in network "%" (%)!', ip, interface_get_name(interface),network, net;
+        END LOOP;
+	RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+-- check networks if network changes
+--FIXME: uncomment after have valid data in fzu dump
+--CREATE TRIGGER network_check_interface AFTER INSERT OR UPDATE ON network FOR EACH ROW
+--	EXECUTE PROCEDURE network_check();
