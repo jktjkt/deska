@@ -86,7 +86,9 @@ FilterExpressionsParser<Iterator>::FilterExpressionsParser(const Db::Identifier 
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
     on_error<fail>(start, attributeFilterErrorHandler(_1, _2, _3, _4, phoenix::ref(attributes),
                                                 phoenix::ref(sets), phoenix::ref(m_name), m_parent));
-    on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
+    on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
+        phoenix::ref(m_name), m_parent));
+    //on_error<qi::rethrow>(dispatchAll, std::cout << phoenix::val("ERROR EXPECT: ") << _4 << std::endl);
 }
 
 

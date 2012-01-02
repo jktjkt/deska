@@ -46,10 +46,10 @@ BOOST_FIXTURE_TEST_CASE(changesets, CliTestFixture)
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("start", false));
     expectPrintMessage("Changeset tmp1 started.");
-    expectReadLine("");
+    expectReadLine("tmp1");
     returnReadLine(std::make_pair<std::string, bool>("start", false));
     expectReportError("Error: You are already in the changeset tmp1!");
-    expectReadLine("");
+    expectReadLine("tmp1");
     returnReadLine(std::make_pair<std::string, bool>("abort", false));
     expectAskForConfirmation("Really abort current changeset?");
     returnAskForConfirmation(true);
@@ -57,7 +57,7 @@ BOOST_FIXTURE_TEST_CASE(changesets, CliTestFixture)
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("start", false));
     expectPrintMessage("Changeset tmp2 started.");
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("detach", false));
     expectAskForDetachMessage();
     returnAskForDetachMessage("Testing message");
@@ -71,7 +71,7 @@ BOOST_FIXTURE_TEST_CASE(changesets, CliTestFixture)
     expectChooseChangeset(changesets);
     returnChooseChangeset(0);
     expectPrintMessage("Changeset tmp2 resumed.");
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("quit", false));
     startTest();
     verifyEnd();
@@ -90,15 +90,15 @@ BOOST_FIXTURE_TEST_CASE(creating_objects, CliTestFixture)
     expectChooseChangeset(changesets);
     returnChooseChangeset(0);
     expectPrintMessage("Changeset tmp2 resumed.");
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("hardware hpv2", false));
     expectConfirmCreation(Deska::Cli::ObjectDefinition("hardware", "hpv2"));
     returnConfirmCreation(true);
-    expectReadLine("hardware hpv2");
+    expectReadLine("tmp2:hardware hpv2");
     returnReadLine(std::make_pair<std::string, bool>("end", false));
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("hardware hpv2", false));
-    expectReadLine("hardware hpv2");
+    expectReadLine("tmp2:hardware hpv2");
     returnReadLine(std::make_pair<std::string, bool>("show", false));
     std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > attrs;
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
@@ -122,7 +122,7 @@ BOOST_FIXTURE_TEST_CASE(creating_objects, CliTestFixture)
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
         Deska::Cli::AttributeDefinition("warranty", Deska::Db::Value()), Deska::Db::Identifier()));
     expectPrintAttributesWithOrigin(attrs, 0, std::cout);
-    expectReadLine("hardware hpv2");
+    expectReadLine("tmp2:hardware hpv2");
     returnReadLine(std::make_pair<std::string, bool>("quit", false));
     startTest();
     verifyEnd();
@@ -141,9 +141,9 @@ BOOST_FIXTURE_TEST_CASE(setting_attributes, CliTestFixture)
     expectChooseChangeset(changesets);
     returnChooseChangeset(0);
     expectPrintMessage("Changeset tmp2 resumed.");
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("hardware hpv2 cpu_ht true hepspec 333.666 cpu_num 2 note_hardware \"Some note\"", false));
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("show hardware hpv2", false));
     std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > attrs;
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
@@ -167,7 +167,7 @@ BOOST_FIXTURE_TEST_CASE(setting_attributes, CliTestFixture)
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
         Deska::Cli::AttributeDefinition("warranty", Deska::Db::Value()), Deska::Db::Identifier()));
     expectPrintAttributesWithOrigin(attrs, 0, std::cout);
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("quit", false));
     startTest();
     verifyEnd();
@@ -186,13 +186,13 @@ BOOST_FIXTURE_TEST_CASE(objects_connecting, CliTestFixture)
     expectChooseChangeset(changesets);
     returnChooseChangeset(0);
     expectPrintMessage("Changeset tmp2 resumed.");
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("host hpv2", false));
     std::vector<Deska::Cli::ObjectDefinition> connected;
     connected.push_back(Deska::Cli::ObjectDefinition("hardware", "hpv2"));
     expectConfirmCreationConnection2(Deska::Cli::ObjectDefinition("host", "hpv2"), connected);
     returnConfirmCreationConnection2(true);
-    expectReadLine("host hpv2");
+    expectReadLine("tmp2:host hpv2");
     returnReadLine(std::make_pair<std::string, bool>("quit", false));
     startTest();
     verifyEnd();
@@ -211,7 +211,7 @@ BOOST_FIXTURE_TEST_CASE(dump, CliTestFixture)
     expectChooseChangeset(changesets);
     returnChooseChangeset(0);
     expectPrintMessage("Changeset tmp2 resumed.");
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("dump", false));
     expectPrintObject(Deska::Cli::ObjectDefinition("hardware", "hpv2"), 0, true, std::cout);
     std::vector<Deska::Cli::AttributeDefinition> attrs;
@@ -236,7 +236,7 @@ BOOST_FIXTURE_TEST_CASE(dump, CliTestFixture)
     attrs2.push_back(Deska::Cli::AttributeDefinition("virtual_hardware", Deska::Db::Value()));
     expectPrintAttributes(attrs2, 1, std::cout);
     expectPrintEnd(0, std::cout);
-    expectReadLine("");
+    expectReadLine("tmp2");
     returnReadLine(std::make_pair<std::string, bool>("quit", false));
     startTest();
     verifyEnd();

@@ -132,9 +132,11 @@ class DB:
 		"""Set an isolation level between concurrent sessions"""
 		# commit and start new transaction with selected properties
 		if self.psycopg2_use_new_isolation:
+			logging.debug("transaction_isolate: setting up isolation through the 2.4.2+ method")
 			self.db.commit()
 			self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
 		else:
+			logging.debug("transaction_isolate: setting up isolation through the 2.4.1- method")
 			self.db.set_isolation_level(2)
 			self.db.commit()
 		self.autocommit = False
@@ -143,9 +145,11 @@ class DB:
 		"""Restore the transaction isolation to a default level"""
 		# set isolation level readCommited
 		if self.psycopg2_use_new_isolation:
+			logging.debug("transaction_shared: setting up shared environment through the 2.4.2+ method")
 			self.db.commit()
 			self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED, readonly=False)
 		else:
+			logging.debug("transaction_shared: setting up shared environment through the 2.4.1- method")
 			self.db.set_isolation_level(1)
 			self.db.commit()
 		self.autocommit = True
@@ -205,6 +209,7 @@ class DB:
 
 	def endTransaction(self):
 		if self.autocommit:
+			logging.debug("Finalizing current transaction automatically")
 			self.db.commit()
 
 	def noJsonCallProc(self,name):
@@ -345,9 +350,11 @@ class DB:
 					self.mark.execute("SAVEPOINT before_revision_commit;")
 					res = self.runDBFunction("commitChangeset", {"commitMessage": "showConfigDiff", "tag": "FakeTag"}, "FakeTag")
 					self.cfgRegenerate()
+					logging.debug(" showConfigDiff: ROLLBACK TO SAVEPOINT...")
 					self.mark.execute("ROLLBACK TO SAVEPOINT before_revision_commit;")
 					self.db.rollback()
 					self.markChangesetFresh()
+					logging.debug(" showConfigDiff: commit after rollback")
 					self.db.commit()
 				else:
 					logging.debug(" configuration was fresh already")

@@ -31,6 +31,8 @@
 #include "Parser.h"
 #include "deska/db/JsonApi.h"
 
+//#define REBASE_DEBUG
+
 namespace Deska {
 namespace Cli {
 
@@ -654,18 +656,34 @@ bool Rebase::operator()(const std::string &params)
     std::vector<Db::ObjectModificationResult> ourModifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
         oldChangeset);
 
+#ifdef REBASE_DEBUG
+    std::ofstream odlfs("deska_rebase.log");
+    if (!odlfs)
+        ui->io->reportError("Error while creating log file \"deska_rebase.log\" for rebase.");
+    odlfs << "DEBUG: External modifications:" << std::endl;
+    OurModificationConverter modificationDebugConverter;
+    for (std::vector<Db::ObjectModificationResult>::iterator it = externModifications.begin();
+        it != externModifications.end(); ++it)
+        odlfs << boost::apply_visitor(modificationDebugConverter, *it) << std::endl;
+    odlfs << "DEBUG: Our modifications:" << std::endl;
+    for (std::vector<Db::ObjectModificationResult>::iterator it = ourModifications.begin();
+        it != ourModifications.end(); ++it)
+        odlfs << boost::apply_visitor(modificationDebugConverter, *it) << std::endl;
+    odlfs.close();
+#endif
+
     // Erasing modifications, that should not be stored (eg. read-only attributes)
     ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
     for (std::vector<Db::ObjectModificationResult>::iterator it = externModifications.begin();
          it != externModifications.end();) {
-        if (boost::apply_visitor(modificationBackupChecker, *it))
+        if (!boost::apply_visitor(modificationBackupChecker, *it))
             externModifications.erase(it);
         else
             ++it;
     }
     for (std::vector<Db::ObjectModificationResult>::iterator it = ourModifications.begin();
          it != ourModifications.end();) {
-        if (boost::apply_visitor(modificationBackupChecker, *it))
+        if (!boost::apply_visitor(modificationBackupChecker, *it))
             ourModifications.erase(it);
         else
             ++it;
@@ -847,6 +865,7 @@ bool Rebase::operator()(const std::string &params)
         ui->io->reportError("Error while unlocking new changeset after rebase.");
         return false;
     }
+    ui->currentChangeset = newChangeset;
     ui->io->printMessage("Rebase successful.");
     return true;
 }

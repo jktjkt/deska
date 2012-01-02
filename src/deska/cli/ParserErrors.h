@@ -369,7 +369,7 @@ template <typename Iterator>
 class ValueErrorHandler
 {
 public:
-    template <typename, typename, typename, typename, typename, typename>
+    template <typename, typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
     /** @short An error has occured while parsing an attribute's value.
@@ -381,11 +381,13 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     *   @param attributeName Name of attribute which value is currently being parsed
+    *   @param kindName Name of kind which attribute value is currently being parsed
     *   @param parser Pointer to main parser for purposes of storing generated error
     *   @see ParseError
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-                    const Db::Identifier &attributeName, ParserImpl<Iterator> *parser) const;
+                    const Db::Identifier &attributeName, const Db::Identifier &kindName,
+                    ParserImpl<Iterator> *parser) const;
 };
 
 
@@ -508,8 +510,19 @@ public:
                const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
                const Db::Identifier &kindName, ParseErrorType parseErrorType);
 
-    /** @short Creates error using ValueErrorHandler when some error occures in attribute's value or kind's
-    *          identifier parsing.
+    /** @short Creates error using ValueErrorHandler when some error occures in kind's identifier parsing.
+    *   
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param kindName Name of kind which name is currently being parsed
+    *   @param parseErrorType Type of the error identifying, where the error occures
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+               const Db::Identifier &kindName, ParseErrorType parseErrorType);
+
+    /** @short Creates error using ValueErrorHandler when some error occures in attribute's value
     *   
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -517,9 +530,10 @@ public:
     *   @param what Expected tokens
     *   @param attributeName Name of attribute which value is currently being parsed
     *   @param parseErrorType Type of the error identifying, where the error occures
+    *   @param kindName Name of kind which attribute value is currently being parsed
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-               const Db::Identifier &attributeName, ParseErrorType parseErrorType);
+               const Db::Identifier &attributeName, ParseErrorType parseErrorType, const Db::Identifier &kindName);
 
     /** @short Creates error when object definition expected, but not found.
     *   
@@ -601,6 +615,12 @@ public:
     *   @return Context of the error.
     */
     std::string context() const;
+
+    /** @short Gets kind name in case of parsing an attribute value.
+    *
+    *   @return Name of kind which attribute value caused an error
+    */
+    std::string contextKind() const;
 
     /** @short Converts error to std::string
     *
@@ -696,6 +716,9 @@ private:
     *   for some function.
     */
     std::string m_context;
+
+    /** kindName in case of parsing an attribute value */
+    std::string m_contextKind;
 };
 
 

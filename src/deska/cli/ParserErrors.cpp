@@ -187,9 +187,10 @@ void IdentifierErrorHandler<Iterator>::operator()(Iterator start, Iterator end, 
 
 template <typename Iterator>
 void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
-                                             const Db::Identifier &attributeName, ParserImpl<Iterator> *parser) const
+                                             const Db::Identifier &attributeName, const Db::Identifier &kindName,
+                                             ParserImpl<Iterator> *parser) const
 {
-    ParseError<Iterator> error(start, end, errorPos, what, attributeName, PARSE_ERROR_TYPE_VALUE_TYPE);
+    ParseError<Iterator> error(start, end, errorPos, what, attributeName, PARSE_ERROR_TYPE_VALUE_TYPE, kindName);
     // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
     // We have to check this case.
     if (error.valid())
@@ -323,10 +324,24 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos,
-                                 const spirit::info &what, const Db::Identifier &attributeName,
+                                 const spirit::info &what, const Db::Identifier &kindName,
                                  ParseErrorType parseErrorType):
     m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos),
-    m_context(attributeName)
+    m_context(kindName)
+{
+    InfoExtractor extractor(&m_expectedKeywords, &m_expectedTypes);
+    spirit::basic_info_walker<InfoExtractor> walker(extractor, what.tag, 0);
+    boost::apply_visitor(walker, what.value);
+}
+
+
+
+template <typename Iterator>
+ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos,
+                                 const spirit::info &what, const Db::Identifier &attributeName,
+                                 ParseErrorType parseErrorType, const Db::Identifier &kindName):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos),
+    m_context(attributeName), m_contextKind(kindName)
 {
     InfoExtractor extractor(&m_expectedKeywords, &m_expectedTypes);
     spirit::basic_info_walker<InfoExtractor> walker(extractor, what.tag, 0);
@@ -417,6 +432,14 @@ template <typename Iterator>
 std::string ParseError<Iterator>::context() const
 {
     return m_context;
+}
+
+
+
+template <typename Iterator>
+std::string ParseError<Iterator>::contextKind() const
+{
+    return m_contextKind;
 }
 
 
@@ -578,7 +601,7 @@ template void AttributeRemovalErrorHandler<iterator_type>::operator()(iterator_t
 
 template void IdentifierErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &kindName, const std::vector<Db::Identifier> &objectNames, ParserImpl<iterator_type>* parser) const;
 
-template void ValueErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName, ParserImpl<iterator_type>* parser) const;
+template void ValueErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
 template void ObjectNameErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
@@ -594,7 +617,9 @@ template ParseError<iterator_type>::ParseError(iterator_type start, iterator_typ
 
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, ascii::space_type> > &attributes, const Db::Identifier &kindName, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName, ParseErrorType parseErrorType);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &kindName, ParseErrorType parseErrorType);
+
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName, ParseErrorType parseErrorType, const Db::Identifier &kindName);
 
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const std::vector<Db::Identifier> &expectedKinds, ParseErrorType parseErrorType);
 
@@ -613,6 +638,8 @@ template std::vector<std::string> ParseError<iterator_type>::expectedTypes() con
 template std::vector<Db::Identifier> ParseError<iterator_type>::expectedKeywords() const;
 
 template std::string ParseError<iterator_type>::context() const;
+
+template std::string ParseError<iterator_type>::contextKind() const;
 
 template std::string ParseError<iterator_type>::toString() const;
 
