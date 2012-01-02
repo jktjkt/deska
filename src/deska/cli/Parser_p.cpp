@@ -335,6 +335,21 @@ template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
 {
     std::vector<Db::Identifier> objectNames = pathToVector(name);
+    Db::Identifier embMeasure = kind;
+    unsigned int eDepth = 0;
+    for (;;) {
+        std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> >::const_iterator embM =
+            embeddedInto.find(embMeasure);
+        if (embM == embeddedInto.end())
+            break;
+        ++eDepth;
+        embMeasure = embM->second.second;
+    }
+    if ((contextStack.size() + objectNames.size() - 1) != eDepth) {
+        addParseError(ParseError<Iterator>(kind, name, PARSE_ERROR_TYPE_KIND_NESTING));
+        parsingSucceededActions = false;
+        return;
+    }
     std::vector<std::pair<Db::Identifier, Db::Identifier> > objects;
     std::vector<Db::Identifier>::reverse_iterator it = objectNames.rbegin();
     objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(kind, *it));
