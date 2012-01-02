@@ -514,7 +514,12 @@ int UserInterface::run()
     while (!exitLoop) {
         parsingFailed = false;
         previosContextStack = m_parser->currentContextStack();
-        line = io->readLine(contextStackToString(m_parser->currentContextStack()));
+        std::ostringstream promptStr;
+        if (currentChangeset)
+            promptStr << *currentChangeset;
+        if (!m_parser->currentContextStack().empty())
+            promptStr << ":" << contextStackToString(m_parser->currentContextStack());
+        line = io->readLine(promptStr.str());
         if (line.second)
             (*(commandsMap["quit"]))("");
 
