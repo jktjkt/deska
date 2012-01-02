@@ -28,7 +28,8 @@ function:
         rowuid bigint;
         tmp bigint;
     BEGIN
-        --for modifications we need to have opened changeset, this function raises exception in case we don't have
+        --for modifications we need to have opened changeset, this function raises exception
+        -- in case we don't have
         SELECT get_current_changeset() INTO ver;
         SELECT %(tbl)s_get_uid(name_) INTO rowuid;
         --not found in case there is no object with name name_ in history
@@ -42,7 +43,8 @@ function:
         --we need to get its current data to this version
         IF NOT FOUND THEN
             INSERT INTO %(tbl)s_history (%(columns)s,version)
-                SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE uid = rowuid;
+                SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver)))
+                  WHERE uid = rowuid;
         END IF;
         --set new value in %(colname)s column
         UPDATE %(tbl)s_history SET %(colname)s = CAST (value AS %(coltype)s), version = ver
@@ -73,7 +75,8 @@ CREATE FUNCTION
         rowuid bigint;
         tmp bigint;
     BEGIN
-        --for modifications we need to have opened changeset, this function raises exception in case we don't have
+        --for modifications we need to have opened changeset, this function raises exception
+        -- in case we don't have
         SELECT get_current_changeset() INTO ver;
         SELECT hardware_get_uid(name_) INTO rowuid;
         --not found in case there is no object with name name_ in history
@@ -86,8 +89,10 @@ CREATE FUNCTION
         --object with given name was not modified in this version
         --we need to get its current data to this version
         IF NOT FOUND THEN
-            INSERT INTO hardware_history (box,purchase,vendor,uid,template_hw,note,host,name,version)
-                SELECT box,purchase,vendor,uid,template_hw,note,host,name,ver FROM hardware_data_version(id2num(parent(ver))) WHERE uid = rowuid;
+            INSERT INTO hardware_history (box,purchase,vendor,uid,template_hw,note,
+                    host,name,version)
+                SELECT box,purchase,vendor,uid,template_hw,note,host,name,ver FROM
+                    hardware_data_version(id2num(parent(ver))) WHERE uid = rowuid;
         END IF;
         --set new value in purchase column
         UPDATE hardware_history SET purchase = CAST (value AS date), version = ver
@@ -136,7 +141,9 @@ string prototype of the set attribute function:
         --we need to get its current data to this version
         IF NOT FOUND THEN
             INSERT INTO %(tbl)s_history (%(columns)s,version)
-                SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE uid = rowuid;
+                SELECT %(columns)s,ver FROM 
+                %(tbl)s_data_version(id2num(parent(ver)))
+                WHERE uid = rowuid;
         END IF;
         --set column to refuid - uid of referenced object
         UPDATE %(tbl)s_history SET %(colname)s = refuid
@@ -186,7 +193,9 @@ CREATE FUNCTION
         --we need to get its current data to this version
         IF NOT FOUND THEN
             INSERT INTO hardware_history (box,purchase,vendor,uid,template_hw,note,host,name,version)
-                SELECT box,purchase,vendor,uid,template_hw,note,host,name,ver FROM hardware_data_version(id2num(parent(ver))) WHERE uid = rowuid;
+                SELECT box,purchase,vendor,uid,template_hw,note,host,name,ver
+                FROM hardware_data_version(id2num(parent(ver)))
+                WHERE uid = rowuid;
         END IF;
         --set column to refuid - uid of referenced object
         UPDATE hardware_history SET vendor = refuid
@@ -227,7 +236,9 @@ function:
             --row is inserted because of diff and changes between versions
             --this means object was modified
             INSERT INTO %(tbl)s_history (%(columns)s,version)
-                SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE name = name_;
+                SELECT %(columns)s,ver FROM
+                %(tbl)s_data_version(id2num(parent(ver)))
+                WHERE name = name_;
         EXCEPTION
             WHEN unique_violation THEN
             -- do nothing
@@ -266,7 +277,8 @@ CREATE FUNCTION
             --row is inserted because of diff and changes between versions
             --this means object was modified
             INSERT INTO host_history (hardware,virtual_hardware,uid,service,name,version)
-                SELECT hardware,virtual_hardware,uid,service,name,ver FROM host_data_version(id2num(parent(ver))) WHERE name = name_;
+                SELECT hardware,virtual_hardware,uid,service,name,ver FROM
+                host_data_version(id2num(parent(ver))) WHERE name = name_;
         EXCEPTION
             WHEN unique_violation THEN
             -- do nothing
