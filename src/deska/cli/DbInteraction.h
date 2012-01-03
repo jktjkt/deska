@@ -247,6 +247,13 @@ public:
     */
     Db::Identifier containableKind(const Db::Identifier &kind, const Db::Identifier &attribute);
 
+    /** @short Function for obtaining kind name where the kind is embedded
+    *
+    *   @param kind kind name which parent are we looking for
+    *   @param kind's parent of empty string if the kind is top-level
+    */
+    Db::Identifier embeddedIntoKind(const Db::Identifier &kind) const;
+
     /** @short Function for obtaining all pending chandesets.
     *
     *   @return Vector of all pending changesets

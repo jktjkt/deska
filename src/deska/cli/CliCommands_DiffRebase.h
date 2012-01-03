@@ -36,6 +36,15 @@ namespace Cli {
 class UserInterface;
 
 
+/** @short Function for clearing delete modifications related to some deleted object
+*
+*   @param modifications Reference to the vector, that will be cleared
+*   @param db pointer to the DbInteraction for obtaining nesting parents
+*/
+void clearChildDeletions(std::vector<Db::ObjectModificationResult> &modifications, const DbInteraction* db);
+
+
+
 /** @short Cli command.
 *
 *   Rebases current changeset.
@@ -70,6 +79,8 @@ private:
     */
     static bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
 };
+
+
 
 /** @short Cli command.
 *

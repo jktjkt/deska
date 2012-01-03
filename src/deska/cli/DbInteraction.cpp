@@ -527,6 +527,17 @@ Db::Identifier DbInteraction::containableKind(const Db::Identifier &kind, const 
 
 
 
+Db::Identifier DbInteraction::embeddedIntoKind(const Db::Identifier &kind) const
+{
+    std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> >::const_iterator it = embeddedInto.find(kind);
+    if (it == embeddedInto.end())
+        return Db::Identifier();
+    else
+        return it->second.second;
+}
+
+
+
 std::vector<Db::PendingChangeset> DbInteraction::allPendingChangesets()
 {
     return m_api->pendingChangesets();

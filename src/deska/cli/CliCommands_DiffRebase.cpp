@@ -37,6 +37,7 @@ namespace Deska {
 namespace Cli {
 
 
+
 /** @short Visitor for comparing two modification of the same type */
 struct ModificationComparatorLesss: public boost::static_visitor<bool>
 {
@@ -61,6 +62,8 @@ struct ModificationComparatorLesss: public boost::static_visitor<bool>
     template <typename MA, typename MB>
     bool operator()(const MA &a, const MB &b) const;
 };
+
+
 
 bool ModificationComparatorLesss::operator()(const Db::CreateObjectModification &a,
                                              const Db::CreateObjectModification &b) const
@@ -140,6 +143,12 @@ bool ModificationComparatorLesss::operator()(const MA &a, const MB &b) const
 */
 struct OurModificationConverter: public boost::static_visitor<std::string>
 {
+    /** @short Constructor assignes vector of our deletions for proper output
+    *
+    *   @param ourDeletions Vector of deleted objects in out changeset
+    */
+    OurModificationConverter(const std::vector<ObjectDefinition> &ourDeletions);
+
     //@{
     /** @short Function for converting single object modification.
     *
@@ -151,6 +160,10 @@ struct OurModificationConverter: public boost::static_visitor<std::string>
     std::string operator()(const Db::RenameObjectModification &modification) const;
     std::string operator()(const Db::SetAttributeModification &modification) const;
     //@}
+
+private:
+    /** Vector of deleted objects in out changeset */
+    std::vector<ObjectDefinition> m_ourDeletions;
 };
 
 
@@ -160,6 +173,12 @@ struct OurModificationConverter: public boost::static_visitor<std::string>
 */
 struct OurModificationConverter2: public boost::static_visitor<std::string>
 {
+     /** @short Constructor assignes vector of our deletions for proper output
+    *
+    *   @param ourDeletions Vector of deleted objects in out changeset
+    */
+    OurModificationConverter2(const std::vector<ObjectDefinition> &ourDeletions);
+
     //@{
     /** @short Function for converting single object modification.
     *
@@ -177,6 +196,10 @@ struct OurModificationConverter2: public boost::static_visitor<std::string>
     std::string operator()(const Db::SetAttributeModification &modification,
                            const Db::SetAttributeModification &lModification) const;
     //@}
+    
+private:
+    /** Vector of deleted objects in out changeset */
+    std::vector<ObjectDefinition> m_ourDeletions;
 };
 
 
@@ -187,6 +210,12 @@ struct OurModificationConverter2: public boost::static_visitor<std::string>
 */
 struct ExternModificationConverter: public boost::static_visitor<std::string>
 {
+     /** @short Constructor assignes vector of our deletions for proper output
+    *
+    *   @param ourDeletions Vector of deleted objects in out changeset
+    */
+    ExternModificationConverter(const std::vector<ObjectDefinition> &ourDeletions);
+
     //@{
     /** @short Function for converting single object modification.
     *
@@ -198,6 +227,10 @@ struct ExternModificationConverter: public boost::static_visitor<std::string>
     std::string operator()(const Db::RenameObjectModification &modification) const;
     std::string operator()(const Db::SetAttributeModification &modification) const;
     //@}
+    
+private:
+    /** Vector of deleted objects in out changeset */
+    std::vector<ObjectDefinition> m_ourDeletions;
 };
 
 
@@ -207,6 +240,12 @@ struct ExternModificationConverter: public boost::static_visitor<std::string>
 */
 struct ExternModificationConverter2: public boost::static_visitor<std::string>
 {
+     /** @short Constructor assignes vector of our deletions for proper output
+    *
+    *   @param ourDeletions Vector of deleted objects in out changeset
+    */
+    ExternModificationConverter2(const std::vector<ObjectDefinition> &ourDeletions);
+
     //@{
     /** @short Function for converting single object modification.
     *
@@ -224,6 +263,10 @@ struct ExternModificationConverter2: public boost::static_visitor<std::string>
     std::string operator()(const Db::SetAttributeModification &modification,
                            const Db::SetAttributeModification &lModification) const;
     //@}
+    
+private:
+    /** Vector of deleted objects in out changeset */
+    std::vector<ObjectDefinition> m_ourDeletions;
 };
 
 
@@ -233,6 +276,12 @@ struct ExternModificationConverter2: public boost::static_visitor<std::string>
 */
 struct BothModificationConverter: public boost::static_visitor<std::string>
 {
+     /** @short Constructor assignes vector of our deletions for proper output
+    *
+    *   @param ourDeletions Vector of deleted objects in out changeset
+    */
+    BothModificationConverter(const std::vector<ObjectDefinition> &ourDeletions);
+
     //@{
     /** @short Function for converting single object modification.
     *
@@ -245,6 +294,10 @@ struct BothModificationConverter: public boost::static_visitor<std::string>
     std::string operator()(const Db::RenameObjectModification &modification) const;
     std::string operator()(const Db::SetAttributeModification &modification) const;
     //@}
+    
+private:
+    /** Vector of deleted objects in out changeset */
+    std::vector<ObjectDefinition> m_ourDeletions;
 };
 
 
@@ -254,6 +307,12 @@ struct BothModificationConverter: public boost::static_visitor<std::string>
 */
 struct BothModificationConverter2: public boost::static_visitor<std::string>
 {
+     /** @short Constructor assignes vector of our deletions for proper output
+    *
+    *   @param ourDeletions Vector of deleted objects in out changeset
+    */
+    BothModificationConverter2(const std::vector<ObjectDefinition> &ourDeletions);
+
     //@{
     /** @short Function for converting single object modification.
     *
@@ -272,6 +331,17 @@ struct BothModificationConverter2: public boost::static_visitor<std::string>
     std::string operator()(const Db::SetAttributeModification &modification,
                            const Db::SetAttributeModification &lModification) const;
     //@}
+    
+private:
+    /** Vector of deleted objects in out changeset */
+    std::vector<ObjectDefinition> m_ourDeletions;
+};
+
+
+
+OurModificationConverter::OurModificationConverter(const std::vector<ObjectDefinition> &ourDeletions):
+    m_ourDeletions(ourDeletions)
+{
 };
 
 
@@ -320,10 +390,17 @@ std::string OurModificationConverter::operator()(const Db::SetAttributeModificat
 
 
 
+OurModificationConverter2::OurModificationConverter2(const std::vector<ObjectDefinition> &ourDeletions):
+    m_ourDeletions(ourDeletions)
+{
+};
+
+
+
 template <typename LM>
 std::string OurModificationConverter2::operator()(const Db::CreateObjectModification &modification, const LM &lModification) const
 {
-    OurModificationConverter conv;
+    OurModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -332,7 +409,7 @@ std::string OurModificationConverter2::operator()(const Db::CreateObjectModifica
 template <typename LM>
 std::string OurModificationConverter2::operator()(const Db::DeleteObjectModification &modification, const LM &lModification) const
 {
-    OurModificationConverter conv;
+    OurModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -341,7 +418,7 @@ std::string OurModificationConverter2::operator()(const Db::DeleteObjectModifica
 template <typename LM>
 std::string OurModificationConverter2::operator()(const Db::RenameObjectModification &modification, const LM &lModification) const
 {
-    OurModificationConverter conv;
+    OurModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -350,7 +427,7 @@ std::string OurModificationConverter2::operator()(const Db::RenameObjectModifica
 template <typename LM>
 std::string OurModificationConverter2::operator()(const Db::SetAttributeModification &modification, const LM &lModification) const
 {
-    OurModificationConverter conv;
+    OurModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -386,6 +463,13 @@ std::string OurModificationConverter2::operator()(const Db::SetAttributeModifica
 
 
 
+ExternModificationConverter::ExternModificationConverter(const std::vector<ObjectDefinition> &ourDeletions):
+    m_ourDeletions(ourDeletions)
+{
+};
+
+
+
 std::string ExternModificationConverter::operator()(const Db::CreateObjectModification &modification) const
 {
     std::ostringstream ostr;
@@ -417,6 +501,10 @@ std::string ExternModificationConverter::operator()(const Db::RenameObjectModifi
 std::string ExternModificationConverter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
+    std::vector<ObjectDefinition>::const_iterator it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
+        ObjectDefinition(modification.kindName, modification.objectName));
+    if (it != m_ourDeletions.end())
+        ostr << "# ";
     ostr << modification.kindName << " " << modification.objectName << std::endl;
     ostr << "#    " << modification.attributeName << " set"
          << readableAttrPrinter(" from", modification.oldAttributeData)
@@ -426,10 +514,17 @@ std::string ExternModificationConverter::operator()(const Db::SetAttributeModifi
 
 
 
+ExternModificationConverter2::ExternModificationConverter2(const std::vector<ObjectDefinition> &ourDeletions):
+    m_ourDeletions(ourDeletions)
+{
+};
+
+
+
 template <typename LM>
 std::string ExternModificationConverter2::operator()(const Db::CreateObjectModification &modification, const LM &lModification) const
 {
-    ExternModificationConverter conv;
+    ExternModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -438,7 +533,7 @@ std::string ExternModificationConverter2::operator()(const Db::CreateObjectModif
 template <typename LM>
 std::string ExternModificationConverter2::operator()(const Db::DeleteObjectModification &modification, const LM &lModification) const
 {
-    ExternModificationConverter conv;
+    ExternModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -447,7 +542,7 @@ std::string ExternModificationConverter2::operator()(const Db::DeleteObjectModif
 template <typename LM>
 std::string ExternModificationConverter2::operator()(const Db::RenameObjectModification &modification, const LM &lModification) const
 {
-    ExternModificationConverter conv;
+    ExternModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -456,7 +551,7 @@ std::string ExternModificationConverter2::operator()(const Db::RenameObjectModif
 template <typename LM>
 std::string ExternModificationConverter2::operator()(const Db::SetAttributeModification &modification, const LM &lModification) const
 {
-    ExternModificationConverter conv;
+    ExternModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -473,7 +568,13 @@ std::string ExternModificationConverter2::operator()(const Db::SetAttributeModif
         return ostr.str();
     } else {
         std::ostringstream ostr;
+        std::vector<ObjectDefinition>::const_iterator it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
+            ObjectDefinition(modification.kindName, modification.objectName));
+        if (it != m_ourDeletions.end())
+            ostr << "# ";
         ostr << "end" << std::endl;
+        if (it != m_ourDeletions.end())
+            ostr << "# ";
         ostr << modification.kindName << " " << modification.objectName << std::endl;
         ostr << "#    " << modification.attributeName << " set"
              << readableAttrPrinter(" from", modification.oldAttributeData)
@@ -481,6 +582,13 @@ std::string ExternModificationConverter2::operator()(const Db::SetAttributeModif
         return ostr.str();
     }
 }
+
+
+
+BothModificationConverter::BothModificationConverter(const std::vector<ObjectDefinition> &ourDeletions):
+    m_ourDeletions(ourDeletions)
+{
+};
 
 
 
@@ -527,10 +635,17 @@ std::string BothModificationConverter::operator()(const Db::SetAttributeModifica
 
 
 
+BothModificationConverter2::BothModificationConverter2(const std::vector<ObjectDefinition> &ourDeletions):
+    m_ourDeletions(ourDeletions)
+{
+};
+
+
+
 template <typename LM>
 std::string BothModificationConverter2::operator()(const Db::CreateObjectModification &modification, const LM &lModification) const
 {
-    BothModificationConverter conv;
+    BothModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -539,7 +654,7 @@ std::string BothModificationConverter2::operator()(const Db::CreateObjectModific
 template <typename LM>
 std::string BothModificationConverter2::operator()(const Db::DeleteObjectModification &modification, const LM &lModification) const
 {
-    BothModificationConverter conv;
+    BothModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -548,7 +663,7 @@ std::string BothModificationConverter2::operator()(const Db::DeleteObjectModific
 template <typename LM>
 std::string BothModificationConverter2::operator()(const Db::RenameObjectModification &modification, const LM &lModification) const
 {
-    BothModificationConverter conv;
+    BothModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -557,7 +672,7 @@ std::string BothModificationConverter2::operator()(const Db::RenameObjectModific
 template <typename LM>
 std::string BothModificationConverter2::operator()(const Db::SetAttributeModification &modification, const LM &lModification) const
 {
-    BothModificationConverter conv;
+    BothModificationConverter conv(m_ourDeletions);
     return conv(modification);
 }
 
@@ -582,6 +697,159 @@ std::string BothModificationConverter2::operator()(const Db::SetAttributeModific
              << readableAttrPrinter(" to", modification.attributeData)
              << " in both newer revision and our changeset" << std::endl;
         return ostr.str();
+    }
+}
+
+
+
+/** @short Visitor for checking if one modification is a delete of parent of another */
+struct ModificationDeleteNested: public boost::static_visitor<bool>
+{
+    /** @short Constructor assignes pointer to the DbInteraction for obtaining nesting parents
+    *
+    *   @param db pointer to the DbInteraction
+    */
+    ModificationDeleteNested(const DbInteraction *db);
+
+    //@{
+    /** @short Function for checking two delete modifications if one modification is a delete of parent of another
+    *
+    *   @param a Instance of Db::DeleteObjectModification
+    *   @param b Instance of Db::DeleteObjectModification
+    *   @return True if the object in first modification is parent of the object from the second one
+    */
+    bool operator()(const Db::DeleteObjectModification &a, const Db::DeleteObjectModification &b) const;
+
+    /** @short We do not care about other types of pairs. This function is always returning false.
+    */
+    template <typename MA, typename MB>
+    bool operator()(const MA &a, const MB &b) const;
+
+private:
+    /** pointer to the DbInteraction for obtaining nesting parents */
+    const DbInteraction *m_db;
+};
+
+
+
+ModificationDeleteNested::ModificationDeleteNested(const DbInteraction *db): m_db(db)
+{
+}
+
+
+
+bool ModificationDeleteNested::operator()(const Db::DeleteObjectModification &a,
+                                          const Db::DeleteObjectModification &b) const
+{
+    Db::Identifier parent = m_db->embeddedIntoKind(b.kindName);
+    if (!parent.empty() && (parent == a.kindName)) {
+        std::vector<Db::Identifier> path = pathToVector(b.objectName);
+        BOOST_ASSERT(path.size() > 1);
+        Db::Identifier expParentName = vectorToPath(std::vector<Db::Identifier>(path.begin(), path.end() - 1));
+        if (expParentName == a.objectName)
+            return true;
+    }
+    return false;
+}
+
+
+
+template <typename MA, typename MB>
+bool ModificationDeleteNested::operator()(const MA &a, const MB &b) const
+{
+    return false;
+}
+
+
+
+/** @short Visitor for extracting object definitions from Db::DeleteObjectModification */
+struct ModificationDeleteExtractor: public boost::static_visitor<boost::optional<ObjectDefinition> >
+{
+    //@{
+    /** @short Function for extracting object definition from Db::DeleteObjectModification
+    *
+    *   @param m Instance of Db::DeleteObjectModification
+    *   @return ObjectDefinition of deleted object
+    */
+    boost::optional<ObjectDefinition> operator()(const Db::DeleteObjectModification &m) const;
+
+    /** @short We do not care about other types of modifications.
+    */
+    template <typename M>
+    boost::optional<ObjectDefinition> operator()(const M &m) const;
+};
+
+
+
+boost::optional<ObjectDefinition> ModificationDeleteExtractor::operator()(const Db::DeleteObjectModification &m) const
+{
+    return ObjectDefinition(m.kindName, m.objectName);
+}
+
+
+
+template <typename M>
+boost::optional<ObjectDefinition> ModificationDeleteExtractor::operator()(const M &m) const
+{
+    return boost::optional<ObjectDefinition>();
+}
+
+
+
+/** @short Visitor for extracting object definitions from Db::SetAttributeModification */
+struct ModificationSetAttrExtractor: public boost::static_visitor<ObjectDefinition>
+{
+    //@{
+    /** @short Function for extracting object definition from Db::SetAttributeModification
+    *
+    *   @param m Instance of Db::SetAttributeModification
+    *   @return ObjectDefinition of deleted object
+    */
+    ObjectDefinition operator()(const Db::SetAttributeModification &m) const;
+
+    /** @short We do not care about other types of modifications.
+    */
+    template <typename M>
+    ObjectDefinition operator()(const M &m) const;
+};
+
+
+
+ObjectDefinition ModificationSetAttrExtractor::operator()(const Db::SetAttributeModification &m) const
+{
+    return ObjectDefinition(m.kindName, m.objectName);
+}
+
+
+
+template <typename M>
+ObjectDefinition ModificationSetAttrExtractor::operator()(const M &m) const
+{
+    throw std::invalid_argument("Deska::Cli::ModificationSetAttrExtractor::operator(): Comparator called to unsupported ObjectModificationResult.");
+}
+
+
+
+void clearChildDeletions(std::vector<Db::ObjectModificationResult> &modifications, const DbInteraction* db)
+{
+    ModificationDeleteNested modificationDeleteNested(db);
+    for(;;) {
+        std::vector<Db::ObjectModificationResult>::iterator it = modifications.begin();
+        std::vector<Db::ObjectModificationResult>::iterator itn = modifications.begin();
+        bool breakLoop = false;
+        for (; it != modifications.end(); ++it) {
+            for (; itn != modifications.end(); ++itn) {
+                if (boost::apply_visitor(modificationDeleteNested, *it, *itn)) {
+                    modifications.erase(itn);
+                    breakLoop = true;
+                    break;
+                }
+            }
+            if (breakLoop)
+                break;
+        }
+        if ((it == modifications.end()) && (itn == modifications.end()))
+            break;
     }
 }
 
@@ -672,6 +940,18 @@ bool Rebase::operator()(const std::string &params)
     odlfs.close();
 #endif
 
+    std::vector<ObjectDefinition> ourDeletions;
+    ModificationDeleteExtractor modificationDeleteExtractor;
+    for (std::vector<Db::ObjectModificationResult>::iterator it = ourModifications.begin();
+         it != ourModifications.end(); ++it) {
+             boost::optional<ObjectDefinition> deletion = boost::apply_visitor(modificationDeleteExtractor, *it);
+             if (deletion)
+                 ourDeletions.push_back(*deletion);
+    }
+
+    clearChildDeletions(externModifications, ui->m_dbInteraction);
+    clearChildDeletions(ourModifications, ui->m_dbInteraction);
+
     // Erasing modifications, that should not be stored (eg. read-only attributes)
     ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
     for (std::vector<Db::ObjectModificationResult>::iterator it = externModifications.begin();
@@ -721,12 +1001,12 @@ bool Rebase::operator()(const std::string &params)
         }
         return false;
     }
-    ExternModificationConverter externModificationConverter;
-    BothModificationConverter bothModificationConverter;
-    OurModificationConverter ourModificationConverter;
-    ExternModificationConverter2 externModificationConverter2;
-    BothModificationConverter2 bothModificationConverter2;
-    OurModificationConverter2 ourModificationConverter2;
+    ExternModificationConverter externModificationConverter(ourDeletions);
+    BothModificationConverter bothModificationConverter(ourDeletions);
+    OurModificationConverter ourModificationConverter(ourDeletions);
+    ExternModificationConverter2 externModificationConverter2(ourDeletions);
+    BothModificationConverter2 bothModificationConverter2(ourDeletions);
+    OurModificationConverter2 ourModificationConverter2(ourDeletions);
     std::vector<Db::ObjectModificationResult>::iterator lastModif;
     while ((ite != externModifications.end()) && (ito != ourModifications.end())) {
         if (objectModificationResultLess(*ite, *ito)) {
@@ -771,11 +1051,18 @@ bool Rebase::operator()(const std::string &params)
     }
 
     ModificationTypeGetter modificationTypeGetter;
-    if ((!ourModifications.empty() &&
-            (boost::apply_visitor(modificationTypeGetter, ourModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR)) ||
-        (!externModifications.empty() &&
-            (boost::apply_visitor(modificationTypeGetter, externModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR)))
-            ofs << "end" << std::endl;;
+    ModificationSetAttrExtractor modificationSetAttrExtractor;
+    if (!ourModifications.empty() &&
+        (boost::apply_visitor(modificationTypeGetter, ourModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR))
+        ofs << "end" << std::endl;
+    if (!externModifications.empty() &&
+        (boost::apply_visitor(modificationTypeGetter, externModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR)) {
+        std::vector<ObjectDefinition>::const_iterator it = std::find(ourDeletions.begin(), ourDeletions.end(),
+            boost::apply_visitor(modificationSetAttrExtractor, externModifications.back()));
+        if (it != ourDeletions.end())
+            ofs << "# ";
+        ofs << "end" << std::endl;
+    }
 
     ofs.close();
 
@@ -887,6 +1174,7 @@ bool Rebase::objectModificationResultLess(const Db::ObjectModificationResult &a,
 }
 
 
+
 Diff::Diff(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "diff";
@@ -936,6 +1224,7 @@ bool Diff::operator()(const std::string &params)
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
             *(ui->currentChangeset));
         std::sort(modifications.begin(), modifications.end(), Diff::objectModificationResultLess);
+        clearChildDeletions(modifications, ui->m_dbInteraction);
         ModificationBackuper modificationBackuper;
         ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
         for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
@@ -981,6 +1270,7 @@ bool Diff::operator()(const std::string &params)
                 ui->io->reportError("Error while creating patch to file \"" + params + "\".");
                 return false;
             }
+            clearChildDeletions(modifications, ui->m_dbInteraction);
             ModificationBackuper modificationBackuper;
             ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
             for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {

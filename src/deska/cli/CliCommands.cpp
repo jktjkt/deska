@@ -46,8 +46,9 @@ namespace Cli {
 std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Value &v)
 {
     std::ostringstream ss;
+    ss << prefixMessage;
     if (v) {
-        ss << prefixMessage << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *v);
+        ss << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *v);
     } else {
         ss << " (none)";
     }
