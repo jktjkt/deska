@@ -11,10 +11,10 @@ The following chapter serves as a users' guide to the CLI application.
 
 \section{Introduction}
 
-The Deska CLI is a console application serving as an exclusive tool for manipulating data in the DB. For running the
+The Deska CLI is a console application serving as an exclusive tool for manipulating data in the Deska DB. For running the
 CLI, some parameters and configuration file must be set. For details refer section \ref{sec:cli-connection-setup}.
 
-There is no need for recompiling the CLI when the DB schema changes. All information and structures are build on the
+There is no need for recompiling the CLI when the DB schema changes. All information and structures are build and obtained on the
 CLI startup, so restarting the CLI is enough.
 
 You can exit the CLI using command {\tt exit} or {\tt quit} or using shortcut "Ctrl + D".
@@ -23,11 +23,10 @@ You can exit the CLI using command {\tt exit} or {\tt quit} or using shortcut "C
 
 When the CLI is started, you will se the command prompt, where the commands could be entered. The prompt has its context.
 The context is something like a path to some object where each object in the path is nested to the previous. 
-It means, that all commands manipulating, or working with objects will now be related to this context. This behavior
-is very similar to an ordinary unix prompt where under context we can imagine a current directory where we are. Actually the
-context could represent a set of objects, because it can contain also filters, not only single object definitions.
-We will talk about filters later. Context means, that all commands manipulating, or working with objects will now be related to
-object or objects represented by this context. This behavior is very similar to an ordinary unix prompt where under context
+It means, that all commands manipulating, or working with objects will now be related to object or objects represented by this context.
+This behavior is very similar to an ordinary unix prompt where under context we can imagine a current directory where we are.
+Actually the context could represent a set of objects, because it can contain also filters, not only single object definitions.
+We will talk about filters later. This behavior is very similar to an ordinary unix prompt where under context
 we can imagine a current directory where we are. In unix prompt all commands like {\tt ls}, {\tt cd}, {\tt mv} and so on
 are also related to the current directory.
 
@@ -74,8 +73,8 @@ attributes directly from this kind, or kinds, that are contained in this one. Th
 containing attributes of any kind, that is in some relation with this one. With relations we mean standard Deska relations
 like "embed into", "contains" and "containable" and "refers to". These attributes should be prefixed by name of their
 kind with dot. For example {\tt interface.ipv4}. There are two sets of operators, that can be used in expressions. First
-set is for standard attributes: {\tt <}, {\tt >}, {\tt <=}, {\tt >=}, {\tt !=} or {\tt <>} and {\tt =} or {\tt ==}. The second set is for identifiers
-sets. There are only two operators: {\tt contains} and {\tt not\_contains}.
+set is for standard attributes: {\tt <}, {\tt >}, {\tt <=}, {\tt >=}, {\tt !=} or {\tt <>} and {\tt =} or {\tt ==}.
+The second set is for identifiers sets. There are only two operators: {\tt contains} and {\tt not\_contains}.
 
 Filters are an exception in a concept of context. Normally we can not be in context of a specific interface without being
 in context of its host. Filters are a little bit different as a set of interfaces should not have one shared parent. So
@@ -177,12 +176,13 @@ end
 \end{minted}
 
 Another method is using command {\tt show}. When the user has not entered a context yet, this command shows only list of top-level objects without any
-additional information. When in a context, it will display information about object or objects from the current context. The
+additional information. When there is a context, it will display information about object or objects from the current context. The
 information contains all attributes with resolved values from templates. When some attribute value was taken from
 a template, information about source of this value is also printed. If some object is contained in one being currently
-printed, its attributes and nested kinds will be printed under attribute referring to that object. Nested objects are
-printed in a way similar to the output from the command {\tt dump}. Example of output from {\tt show} on a host containing some hardware
-through attribute "hardware" with attribute "ram" inherited from template for hardware with name "hp357":
+printed, its attributes and nested kinds will be printed under attribute referring to that object. Attribute referring back to its parent
+are not displayed as their values does not give any useful information. Nested objects are printed in a way similar to the output from the
+command {\tt dump}. Example of output from {\tt show} on a host containing some hardware through attribute "hardware" with attribute "ram"
+inherited from template for hardware with name "hp357":
 
 \begin{minted}{text}
 > host hpv2
@@ -191,7 +191,6 @@ hardware hpv2
     cpu_ht 1
     cpu_num 4
     no hepcpec
-    host hpv2
     no note_hardware
     purchase 2011-12-23
     ram 4096 -> hp357
@@ -214,14 +213,14 @@ end
 
 Command {\tt show} could be used also for printing information about objects outside of the current context. Like {\tt show host hpv2} or
 {\tt show host hpv2 interface eth0}. This form will print the requested information without changing the current context.
-The parameter can refer both to the top-level objects and to those in the current context. It means that in context of host "hpv2" you can type {\tt show interface eth0}
-for showing information about interface "eth0" nested in host "hpv2".
+The parameter can refer both to the top-level objects and to those in the current context. It means that in context of host "hpv2" you can
+type {\tt show interface eth0} for showing information about interface "eth0" nested in host "hpv2".
 
 \section{Work with changesets}
 
 Till now, we could perform only read-only commands. For modifying content of the DB, you have to be connected to some changeset.
-Changeset is some kind of session, where you can modify objects int he DB where the DB does not change. When you are done,
-you can commit this changeset and your changes will be written to the DB and new revision will be created.
+Changeset is some kind of session, where you can modify objects in the DB where the DB does not change while you are working.
+When you are done, you can commit this changeset and your changes will be written to the DB and new revision will be created.
 Start of new changeset is done using keyword {\tt start}. Then if you are not done with your work and you would like to
 go home from the work, you can detach from the changeset. You should use command {\tt detach} for this purpose. Using
 this, you will not loose your work in progress. CLI will ask you for a detach message commenting what is going on in
@@ -231,8 +230,8 @@ you a list of changesets with some additional information and you can choose one
 changeset in this list if your CLI dies, or if you exit it without detaching. So your work will not be lost. Each changeset has
 its ID. You can see it in the list and you can also obtain it using command {\tt status} or you can see in in the prompt.
 This command will tell you if you are in some changeset and if you are, it will tell you in which. You can then use this ID directly
-as parameter of the command {\tt resume}. This ID does not change, so if you know it, you can skip the choosing using list of
-all changesets. If you want to abort current changeset and discard all work you have don in it, type simply {\tt abort}.
+as a parameter of the command {\tt resume}. This ID does not change, so if you know it, you can skip the choosing using list of
+all changesets. If you want to abort current changeset and discard all work you have done in it, type simply {\tt abort}.
 When you are done, you can commit your work using command {\tt commit}. The CLI will ask you for a commit message of as
 in case of detach, you can type it directly as a command parameter.
 
@@ -250,7 +249,7 @@ tmp2>
 
 \section{Modifying objects and their attributes}
 
-In this section we describe how to create, rename and delete object and also how to set or remove a value of their
+In this section we will describe how to create, rename and delete objects and also how to set or remove a value of their
 attributes.
 
 \subsection{Objects creating, deleting and renaming}
@@ -259,7 +258,7 @@ There are three ways on how to create an object. First one is an explicit one us
 host hpv2} will create object "host hpv2". You can also directly create nested object (including its parent, if it
 doesn't exist yet) using a single {\tt create host hpv2 interface eth0} call. Note that the keyword {\tt create} does not change
 the current context, but acts as a standalone action -- an object is created, but the user's context remains the same.
-Second way how to create an object is through an attempt to step into the context on a non-existing object.
+Second way how to create an object is through an attempt to step into the context of a non-existing object.
 When trying to do that, CLI will ask you if you want to create this object. Obviously, this second will change the
 context, for example:
 
@@ -302,7 +301,7 @@ eth0}. This will delete only the interface, not the whole host. When deleting pa
 also delete all these nested objects (after confirmation).
 
 Renaming of objects is also very simple, through the {\tt rename} keyword. The format of
-parameter for {\tt rename} is similar as in create, but you have to specify the new name of the object. For example
+parameter for {\tt rename} is similar as in case of creating, but you have to specify the new name of the object. For example
 {\tt rename host hpv2 hpv3} will rename host "hpv2" to "hpv3". When you are renaming an object which is connected using relation
 "contains" or "containable" to another objects, the CLI will ask you if you want to rename these connected objects
 as well as they have the same name. If you do not rename them, the connection between them will be lost.
@@ -318,7 +317,7 @@ tmp1:host hpv2> end
 tmp1>
 \end{minted}
 
-Shortened notations like {\tt interface hpv2->eth0} could be also used for deleting or renaming. Note, that when renaming
+Shortened notations like {\tt interface hpv2->eth0} could be also used for creating, deleting or renaming. Note, that when renaming
 object using this shortened notation, parameter identifying a new name should not contain parents name. For example:
 
 \begin{minted}{text}
@@ -340,7 +339,7 @@ tmp1:host hpv2>
 You can also remove the value of the attribute using keyword {\tt no}. For example {\tt no ip4}. There are also two special
 keywords for operations with identifier sets. It is keyword {\tt add} for adding an identifier to a set and keyword
 {\tt remove} for removing an identifier from a set --- e.g. {\tt add service www} for adding identifier "www" to a set
-with name service. You also set the set directly as a value of standard attribute using the notion {\tt service [ftp, www,
+with name service. You can also set the set directly as a value of standard attribute using the notation {\tt service [ftp, www,
 dns]}, which simply overwrites the current value with the specified data.
 
 Here is the list of all supported types and syntax for the values:
@@ -398,6 +397,7 @@ Moreover it is possible to access attributes of objects, that are contained in o
 contains hardware, you can set or remove attributes of the hardware from context of the host. And is the hardware
 does not exist and you are trying to set its attributes, CLI will ask you, if you want to create this hardware and
 connect it to the host. When confirmed, CLI will create hardware of the same name as out host and set its attribute.
+This feature works also for transitively contained objects.
 
 \section{Batched operations}
 
@@ -538,13 +538,14 @@ When working in some changeset, another user could be faster and start and finis
 It means, that parent of our changeset is obsolete. As a history in the Deska is linear, it is obvious, that the commit
 will not work in this situation. If you try to commit, CLI will inform you, that rebase is needed. There is command
 {\tt rebase} for this purposes. It generates a file summarizing changes in both our changeset and changes made while
-we were working. Than it opens an editor where we perform some kind of merge of our changes and changes made by other users.
+we were working. Then it opens an editor where we perform some kind of merge of our changes and changes made by other users.
+The format of the file is very intuitive and is in format of commands we are familiar from the CLI or command {\tt batch}.
+Modifications made by us in the changeset can be edited simply as they do not exist in the persistent revision.
+Modifications made by somebody else are shown only in format of comments (lines beginning with {\tt \#}) as they are already
+committed. We can influence the result by adding some extra lines with commands like renaming created objects and so on.
+
 When the rebase is done. We will get the changeset with new parent and changes determined by our merge. Now we can try to
 commit our work again and now, we hope, successfully.
-
-The format of the file is very intuitive and is in format of commands we are familiar from the CLI or command {\tt batch}.
-We can not revert changes made by someone else, so information about changes made by someone else are in form of comments
-(lines beginning with {\tt \#}).
 
 \section{Non interactive mode}
 
@@ -557,21 +558,21 @@ which these objects will not be renamed as it will be impossible to rename only 
 rename them in the non-interactive mode all, you have to do it manually.
 
 Also commands asking for something could not be run in non-interactive mode. It means you can not run {\tt rebase}, or use
-{\tt commit}, {\tt detach} or {\tt resume} without parameter specifying commit/detach message of changeset ID.
+{\tt commit}, {\tt detach} or {\tt resume} without parameter specifying commit or detach message or changeset ID.
 
-Also all commands loaded from file using command {\tt batch} are running in non-interactive mode.
+Also all commands loaded from a file using command {\tt batch} are running in this non-interactive mode.
 
 \section{Database backup and restore}
 \label{sec:cli-db-backup}
 
-It may be useful to perform the backup of the whole DB. You can backup only persistent revisions. For backup of
+It may be useful to perform the backup of the whole DB. You can backup only persistent revisions. For backup of a
 changeset, it is possible to use {\tt diff <filename>} for each changeset you would like to backup. For backup of the
 revisions including their changesets and information about author and commit message, you can use command {\tt backup}
 with parameter specifying file, where the backup will be created. This file is not intended to be modified manually,
 but if you find some reason to do so, you can find the format of the file in the programmers documentation.
 
 For restoring the DB from a backup, there is a command {\tt restore}. As a parameter it takes a filename of a file with
-the backup. There is a special role called {\tt deska\_admin} for the restore. You can not perform restore without this
+the backup. There is a special database role called {\tt deska\_admin} for the restore. You can not perform restore without this
 role. See DB part of the documentation for more information. The whole DB has to be empty before performing the restore.
 
 \section{CLI Scripting}
@@ -579,8 +580,8 @@ role. See DB part of the documentation for more information. The whole DB has to
 You can prepare your own files with commands, that could be executed as batches from the CLI. In opposite to command
 {\tt batch}, where the set of commands was restricted only to commands modifying objects, when preparing this file, you
 can use also commands like {\tt start}, {\tt commit} and so on. The file can be loaded to the CLI using command
-{\tt execute}. Execute will take each line from the file and executes it in the same way as you are writing it in the
-console manually. The only difference is, that these commands are run in the non-interactive mode. There is also a
+{\tt execute}. Execute will take each line from the file and execute it in the same way as you are writing it in the
+console manually. The only difference is, that these commands are running in the non-interactive mode. There is also a
 possibility of using comment, that are lines beginning with {\tt \#}.
 
 \section{Integrated help}
@@ -599,15 +600,17 @@ possibilities.
 
 \section{Commands history}
 
-The CLI stores history of all commands typed in the console. You can access this history using arrows up and down. Fro
+The CLI stores history of all commands typed in the console. You can access this history using arrows up and down. For
 searching in this history use shortcut "CTRL + R". The file where the history is saved is a part of a configuration
 file.
 
 \section{CLI Configuration}
 
 The CLI has several values, that can or must be defined in order to get the CLI working. In the table \ref{tab:configfile}
-you can see list of parameters from the configuration file. The file name id {\tt deska.ini} and should be placed in
-the directory from where we are executing the CLI.
+you can see list of parameters from the configuration file. The file name and path to the configuration file is obtained from
+the system environment variable {\tt DESKA\_CONFIG\_FILE}. If the variable is not set, CLI will look for the file {\tt deska.ini}
+in the home directory or in the directory from where we are executing the CLI when the home directory is not known (system
+environment variable {\tt HOME} not defined).
 
 The file has standard configuration file format. It means, that section names are in {\tt []} on separate lines and
 value assignments are in format {\tt <parameter name> = <parameter value>}. For example:
@@ -623,7 +626,7 @@ LineWidth=80
 
 \label{sec:cli-connection-setup}
 There is one crucial mandatory parameter in the configuration file. It is parameter {\tt Server} in section
-{\tt DBConnection}. This parameters specifies path to an executable to Deska server for connection to the DB including
+{\tt DBConnection}. This parameters specifies path to an executable to the Deska Server for connection to the DB including
 arguments. If the executable takes some arguments, they should be one per line as in this example:
 \begin{minted}{text}
 [DBConnection]
@@ -638,10 +641,10 @@ Server=arg2
     \hline
     \endhead
 \label{tab:configfile}
-    DBConnection & Server & vector of strings & yes & path to executable for connection to Deska server including arguments & no \\
-    CLI & HistoryFilename & string & yes & path to file where the history will be stored & {\tt \~/.local/ share/deska/ .deska\_cli\_history} \\
-    CLI & HistoryLimit & unsigned integer & no & number of lines stored in history & 64 \\
-    CLI & LineWidth & unsigned integer & no & maximum width of line in the console & no \\
+    DBConnection & Server & vector of strings & yes & Path to executable for connection to Deska server including arguments & no \\
+    CLI & HistoryFilename & string & yes & Path to file where the history will be stored & {\tt \~/.local/ share/deska/ .deska\_cli\_history} \\
+    CLI & HistoryLimit & unsigned integer & no & Number of lines stored in the history & 64 \\
+    CLI & LineWidth & unsigned integer & no & Maximum width of line in the console & no \\
     CLI & NonInteractive & boolean & no & Force non-interactive mode & false \\
     \hline
 \end{longtable}
