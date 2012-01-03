@@ -30,6 +30,9 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 				'''This is hack (see #410), to work with empty string, which psycopg call as array
 				but database thinks it is a string, do not raise exception'''
 				fname = kindName+"_set_"+attributeName+"(text,text[])"
+			elif attributeData is None:
+				# a hack for #435
+				fname = kindName+"_set_"+attributeName+"(text,text[])"
 			else:
 				raise dutil.DutilException("NotASetError","Attribute '{0}' type is identifier_set, but data type is {1}".format(attributeName,attributeData))
 		dutil.fcall(fname,objectName,attributeData)

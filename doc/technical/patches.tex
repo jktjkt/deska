@@ -41,6 +41,15 @@ Another drawback of the PsycoPg2 library is its failure to pass on additional di
 PostgreSQL's error messages.  Contrary to the provided documentation, the exception object does {\em not} contain the
 extra ``detail'' information, as reported by PostgreSQL.  We have not pursued this behavior further.
 
+\section{PgPython}
+
+The PgPython~\cite{pg-python} is an implementation of the Python~3 procedural language for PostgreSQL's stored
+procedures.  Using this library, we have had issues with their routines for converting data between the PostgreSQL and
+Python native data types.  It proved very hard to distinguish between the {\tt ARRAY} and {\tt TEXT} data types, a
+crucial distinction on which our stored procedures for manipulating the {\tt identifier\_set} attributes heavily rely.
+We have not determined the root cause of this problem and chosen instead to add special custom code for explicit
+conversion of the {\tt None} values and empty strings to the expected array format.
+
 \section{Boost.Process}
 
 The Boost.Process~\cite{boost-process} is an out-of-tree extensions for the Boost programming libraries.  We have
