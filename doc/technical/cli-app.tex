@@ -203,14 +203,14 @@ Now we will describe how the more complicated commands from the first group work
 
 Class {\tt Rebase} is quite complicated one. It's purpose is to reconnect current changeset from its parent to a new
 one. It solves the problem, that our history is linear. So when we are in a changeset inherited from some revision and
-somebody else creates new revision, we are not albe to commit ours. Rebase is solving this problem without loosing
+somebody else creates a new revision, we are not able to commit ours. Rebase is solving this problem without loosing
 changes we made.
 
 Rebase firstly creates a new changeset, which will be connected to a newest revision. Then it obtains two sets of
 {\tt Db::ObjectModificationResult}. First one is diff of the new parent with our old parent. This represents changes
 made by somebody else while we were working. The second set of modifications is diff between our old changeset and
-our old parent. This represents changes made by us. These sets has to be somehow merged and shown to a user in order
-to see, haw the final result of merge will look like and also in order to influence the result of this merge.
+our old parent. This represents changes made by us. These sets has to be somehow merged and shown to the user in order
+to see, how the final result of merge will look like and also in order to influence the result of this merge.
 The merge is performed by several comparators and the result has to be in the following order:
 \begin{enumerate}
     \item {\tt Db::DeleteObjectModification}
@@ -222,23 +222,22 @@ It means, that all objects deletions come first, then we have bunch of all renam
 we have modifications relating to attributes manipulations. These modifications are sorted by kind and object name so
 they can be nicely presented to the user. This order was chosen because of constraints in the DB. For example when
 we are creating some object, the object with the same name must not exist and so on. So deleting does not break any
-constraint any time. Rename is before create because you can create then the object of the same name as an old one,
+constraint any time. Rename is before create because then you can create an object with the same name as thw old one,
 but you will never need to perform create before rename to unblock rename. Setting attributes must be last as it
 requires an existing object.
 
 After this sorting and merging the result is stored in a temporary file, that is shown to the user using an interactive editor
-implemented in {\tt UserInterfaceIO}. Here the user can delete or modify the modifications. When the editing part is
-finished, the corrected list is processed and all modifications are performed. Modifications made by us can be editted
-simply as they do not exist in the new changeset and are in format readable by the {\tt Parser}. Modifications made by
+implemented in {\tt UserInterfaceIO}. Here the user can delete or modify the modifications. Modifications made by us can be
+editted simply as they do not exist in the new changeset and are in format readable by the {\tt Parser}. Modifications made by
 somebody else are shown only in format of comments as they are already commited. The user can influence the result by
 adding some extra lines with commands like renaming created objects and so on. When the user finishes editting of the
 modifications, the whole file is read by the {\tt Parser} and all modifications are performed. As a result we have a
 new changeset with modifications from both our old changeset and new revision made by someone else. When no problem
-occures old changeset is aborted and we can continue in work in the new changeset or commit it.
+occures, the old changeset is aborted and we can continue in work in the new changeset or commit it.
 
 \subsection{Log}
 
-Function {\tt bool Log::operator()} when executed without parameters only obtains list of all revisions in the DB and
+Function {\tt bool Log::operator()}, when executed without parameters, only obtains list of all revisions in the DB and
 prints this list using {\tt UserInterfaceIO} to the screen. The more interesting part of this class is parameters parser.
 It is based on {\tt boost::spirit} as well as the {\tt Parser}. Parsing of parameters is done by class {\tt LogFilterParser}.
 An output of this class is a {\tt Db::Filter}, that will be used directly for obtaining the list of revisions and similarly
@@ -250,8 +249,8 @@ the runtime. This is because of the fact, that we have to parse kind names, that
 from the DB. In the first symbols table there are names of metadata (author, timestamp, ...) and is filled at compile time
 directly in the constructor. The second one is empty and will be filled using function {\tt void addKind(const Db::Identifier \&kindName)}.
 The third table contains operators. This parser is connected to three error handlers. {\tt LogAttributeErrorHandler}
-for reporting an error while parsing an metadata name or a kind name, {\tt LogIdentifierErrorHandler} for reporting errors
-while parsing of an object name and {\tt LogValueErrorHandler} for reporting an error while parsing a value of some
+for reporting an error while parsing a metadata name or a kind name, {\tt LogIdentifierErrorHandler} for reporting errors
+while parsing an object name and {\tt LogValueErrorHandler} for reporting an error while parsing a value of some
 metadata. The {\tt boost::spirit} error handlers ale classes with function {\tt operator()}, that will be invoked every time
 when the matching of the input to a specific rule fails. Each rule could have associated a number of error handlers. The
 problem of this way how error handlers work is, that when some rule fails, error handlers of other rules containing this one
@@ -307,7 +306,7 @@ the grammar require more input on the end of the line, which is side effect of e
 \subsection{Diff}
 
 This function obtains list of {\tt Db::ObjectModificationResult} between two revisions or between changeset and its parent.
-This depends on the parameters given. The output depends on the destination. If it is a diff to file the modifications
+This depends on the parameters given. The output depends on the destination. If it is a diff to file, the modifications
 are sorted in the way like in {\tt Rebase}. This is because of the fact, that this output of the diff could be used for
 example for backing the work in the changeset up. So we have to for example create the object before we are referencing it
 in another object. This form of output is unfortunately not very user friendly. When the destination is a screen, the
@@ -316,7 +315,7 @@ the obtained modifications.
 
 \subsection{Dump}
 
-Dump is performing some visual picture of the whole DB. The output is the same when dumping to the file or to the screen.
+Dump is performing some visual picture of the whole DB. The output is the same when dumping to a file or to a screen.
 It is not intended to be used for backing anything up as it does not take any constraints in account.
 The principle is very simple. We have a list of all kinds that could not be embedded in any other. This gives us a list
 of "top-level" kinds. Now we can obtain instances of these kinds and for each instance we obtain list of embedded objects.
@@ -324,7 +323,7 @@ This is performed recursively. As the embedded objects can not live without thei
 
 \subsection{Batch}
 
-Class {\tt Batch} reads and performs commands readable by the {\tt Parser} from a file. It could be used for reading of
+Class {\tt Batch} reads and performs commands readable by the {\tt Parser} from a file. It could be used for reading
 an output from a diff.
 
 \subsection{Backup}
@@ -362,7 +361,7 @@ in order to perform restore. This is checked before any actions are made.
 \subsection{Execute}
 
 Command {\tt execute} was implemented mainly for testing purposes. It reads commands from a file and performs actions. It
-can read the same commands, that can be written to the CLI. The only difference is, that all command run in non-interactive
+can read the same commands as those that can be written to the CLI. The only difference is, that all commands run in non-interactive
 mode. This means, that user will not be asked for any confirmations as this would be impossible when reading commands from
 a file.
 
@@ -380,20 +379,22 @@ Their names are {\tt Start}, {\tt Resume}, {\tt Commit}, {\tt Detach}, {\tt Abor
 \section{Parser}
 
 The {\tt Parser} parses lines in the CLI, that does not begin with name of some command implemented through class {\tt Command}.
-The actions, you can perform though this parser do not depend only on the command written to the CLI, but also on the
+The actions, you can perform through this parser do not depend only on the command written to the CLI, but also on the
 context in which the parser currently is. It is based on many sub parsers stored in maps and calculated depending on the current context.
 
 The whole parser operates in one loop. At the beginning, before the loop, it tries to parse function words using
-{\tt functionWordsParser} to switch the parsing mode. It means whether the whole kinds including attributes definitions
-or only kind definitions will be parsed etc. After parsing the function words, parser will step into the main loop.
+{\tt FunctionWordsParser} to switch the parsing mode. It means whether the whole kinds including attributes definitions
+or only kind definitions will be parsed etc. After parsing the function words, parser will step into the main loop. Here
+the line is parsed using {\tt TopLevelParser} when the context is empty or using {\tt KindsParser} or {\tt WholeKindParser}
+depending on the parsing mode.
 
 Here the grammars are invoked until the whole line is parsed or until some parse error occurs. We have to parse
 the line in such loops because we are allowing so called inline operations. That means we can step into context of
-a object and set attributes of this object using only one line. Setting an attribute value requires the parser to
+an object and set attributes of this object using only one line. Setting an attribute value requires the parser to
 be in context of the object, which attribute are we going to set. So as you can see, context before parsing and
 during parsing can differ. The loops ensures, that after each parsed kind definition, the parsing is terminated so
 parser could change the parsing context and continue parsing by taking another grammar for the new context.
-The main loop terminates when the grammars in this loop fail or if the whole line was parsed.
+The main loop terminates when the grammars in this loop fails or when the whole line was parsed.
 
 After this main loop, the parser could take some more actions depending on the parse mode. For example parsing of
 a new name when renaming some object. After these actions the actual parsing finishes.
