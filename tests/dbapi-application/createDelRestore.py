@@ -84,6 +84,17 @@ def doStuff(r):
                   [{'command': 'deleteObject', 'kindName': 'interface', 'objectName': 'h1->i1'}])
     r.cvoid(abortCurrentChangeset())
 
+    # Now try the absolutely same thing but with calling applyBatchedChanges()
+    # instead of plain old setAttribute
+    changeset = r.c(startChangeset())
+    r.cvoid(deleteObject("interface", "h1->i1"))
+    # FIXME: Fails, Redmine#434
+    #r.cvoid(applyBatchedChanges([{'attributeName': 'note', 'kindName': 'interface', 'command': 'setAttribute',
+    #                              'attributeData': 'pwn', 'objectName': 'h1->eth0'}]))
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)),
+                  [{'command': 'deleteObject', 'kindName': 'interface', 'objectName': 'h1->i1'}])
+    r.cvoid(abortCurrentChangeset())
+
 def doStuff_embed(r):
     hostNames = set(["host1"])
     presentHosts = set(r.c(kindInstances("host")))
