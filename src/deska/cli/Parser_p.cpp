@@ -1519,11 +1519,10 @@ template <typename Iterator>
 std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbedsRecursively(const Db::Identifier &kindName)
 {
     std::vector<Db::Identifier> res = parserKindsEmbeds(kindName);
-    for (std::vector<Db::Identifier>::const_iterator it = res.begin(); it != res.end(); ++it) {
-        std::vector<Db::Identifier> another = parserKindsEmbedsRecursively(*it);
+    for (size_t i = 0; i < res.size(); ++i) {
+        std::vector<Db::Identifier> another = parserKindsEmbedsRecursively(res[i]);
         res.insert(res.end(), another.begin(), another.end());
     }
-
     return res;
 }
 
