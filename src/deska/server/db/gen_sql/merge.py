@@ -335,7 +335,6 @@ LANGUAGE plpgsql;
                     if row[0] not in self.composition_touples:
                         attributes.add(row[0])
                 for tbl in composition_chain:
-                    print composition_chain
                     record = self.plpy.execute(self.kind_attributes_query_str % {'tbl': tbl})
                     for row in record:
                         if row[0] in attributes:
