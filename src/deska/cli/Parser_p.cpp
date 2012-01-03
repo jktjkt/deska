@@ -1518,14 +1518,13 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
 template <typename Iterator>
 std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbedsRecursively(const Db::Identifier &kindName)
 {
-    std::vector<Db::Identifier> embedsRecursivelyTotal = parserKindsEmbeds(kindName);
-    for (std::vector<Db::Identifier>::const_iterator it = embedsRecursivelyTotal.begin();
-         it != embedsRecursivelyTotal.end(); ++it) {
-        std::vector<Db::Identifier> embedsRecursively = parserKindsEmbedsRecursively(*it);
-        embedsRecursivelyTotal.insert(embedsRecursivelyTotal.end(), embedsRecursively.begin(), embedsRecursively.end());
+    std::vector<Db::Identifier> res = parserKindsEmbeds(kindName);
+    for (std::vector<Db::Identifier>::const_iterator it = res.begin(); it != res.end(); ++it) {
+        std::vector<Db::Identifier> another = parserKindsEmbedsRecursively(*it);
+        res.insert(res.end(), another.begin(), another.end());
     }
 
-    return embedsRecursivelyTotal;
+    return res;
 }
 
 
