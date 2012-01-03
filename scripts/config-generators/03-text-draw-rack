@@ -114,21 +114,6 @@ def print_current(s, indent, key, special_nodes, parent_name, parent_box_data, p
             buf.append(prefix + 'consumesBaysX: %s' % my_modelbox_data.width)
         if my_modelbox_data.height is not None:
             buf.append(prefix + 'consumesBaysY: %s' % my_modelbox_data.height)
-        if parent_name is not None:
-            if parent_box_data is None or parent_box_data.internal_width is None:
-                # this box is not divided into inner bays, so we have to come up with a proper alignment
-                buf.append(prefix + 'width: parent.width / %d' % len(res[parent_name]))
-                buf.append(prefix + 'height: Math.max(parent.height - 40, 20)')
-                if previous_name is None:
-                    buf.append(prefix + "anchors.left: parent.left")
-                else:
-                    buf.append(prefix + "anchors.left: %s.right" % previous_name)
-                buf.append(prefix + "anchors.bottom: parent.bottom")
-                buf.append(prefix + "anchors.bottomMargin: 40")
-        else:
-            # this is a special case when we're printing just one item and want to scale it properly
-            buf.append(prefix + "width: 400")
-            buf.append(prefix + 'height: Math.max(parent.height - 40, 20)')
     else:
         buf.append(prefix + "// no modelbox\n")
 
@@ -147,15 +132,41 @@ Rectangle {
 id: serverovna
 //color: "transparent"
 width: 1200
-height: 700
+height: 1300
 """,
 }
 
+
+def process_racks(f, iterable):
+    previous_name = None
+    for rack in iterable:
+        if previous_name is None:
+            anchor_left = "parent.left"
+        else:
+            anchor_left = "%s.right" % to_qml_identifier(previous_name)
+        previous_name = rack
+        formatting = {"rack": rack, "anchor_left": anchor_left, "row_size": len(iterable), "id": to_qml_identifier(rack)}
+        f.write(" Loader {\n  id: %(id)s\n  source: \"rack_%(rack)s.qml\"\n  anchors.left: %(anchor_left)s\n  width: parent.width / %(row_size)d\n  height: Math.max(parent.height - 40, 20)\n }\n\n" % formatting)
+
+
+
+top_racks = sorted([k for (k,v) in boxes.iteritems() if v.inside == "serverovna"])
+for rack in top_racks:
+    f_rack = file("rack_%s.qml" % rack, "wb")
+    f_rack.write("import QtQuick 1.0\n\n")
+    print_current(f_rack, 0, rack, {}, parent_name=None, parent_box_data=None, previous_name=None)
+    f_rack.close()
+
 f = file("boxes.qml", "wb")
 f.write("import QtQuick 1.0\n\n")
-#f.write(special_node_rules["serverovna"])
-print_current(f, 0, "serverovna", special_node_rules, parent_name=None, parent_box_data=None, previous_name=None)
-#f.write("}\n")
+f.write(special_node_rules["serverovna"])
+
+f.write("Rectangle {\nid: left_aisle\nanchors.top: parent.top\nanchors.left: parent.left\nanchors.right: parent.right\nheight: parent.height / 2\n")
+process_racks(f, [x for x in top_racks if x.startswith("L")])
+f.write("}\nRectangle {\nid: right_aisle\nanchors.top: left_aisle.bottom\nanchors.left: parent.left\nanchors.right: parent.right\nanchors.bottom: parent.bottom\n")
+process_racks(f, [x for x in top_racks if x.startswith("R")])
+f.write("}\n")
+f.write("}\n")
 
 t3 = time.time()
 
