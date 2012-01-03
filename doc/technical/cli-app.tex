@@ -7,7 +7,7 @@
 
 \begin{abstract}
 
-In this chapter you can find the description of the {\tt Deska CLI}, the user interface for the whole system.
+In this chapter you can find the description of the {\tt Deska CLI}, the command line user interface for the whole system.
 
 \end{abstract}
 
@@ -21,7 +21,7 @@ Here you can find all definitions for single commands you can type to the comman
 event loop handler and logics of communication with the user. This class is connected to another important component 
 called simply, {\tt Parser}. All classes related to the CLI are placed in the namespace {\tt Deska::Cli}, so this one is not an 
 exception and you can find it as class {\tt Deska::Cli::Parser}. This component is responsible for parsing of the 
-command line. Each action, that user wans to perform writing it to the command line is represented by a signal emitted 
+command line. Each action, that user wants to perform writing it to the command line is represented by a signal emitted 
 by this parser. All these signals are collected in a supporting component called {\tt SignalsHandler} and the {\tt Parser}
 is then connected with the {\tt UserInterface} through this component. {\tt UserInterface} is also directly 
 connected to the closest part of the application to the user, the {\tt UserInterfaceIO}. This class stands for a 
@@ -29,7 +29,7 @@ translator between questions and responses from the {\tt UserInterface} and the 
 components, there is one more. The whole CLI needs some configuration values for its work. For obtaining these values 
 is responsible {\tt Deska::Cli::CliConfig}.
 
-See figure \ref{img:deska-cli} for summary of how the main components are communicating with each other.
+See figure \ref{img:deska-cli} for the summary of how the main components are communicating with each other.
 
 \begin{figure}[h]
     \centering
@@ -49,8 +49,8 @@ these structures, and then the role of {\tt DbInteraction}.
 
 First structure is {\tt AttributeDefinition}. This one is very simple. It is containing attribute name ({\tt Db::Identifier}))
 and its value ({\tt Db::Value}). {\tt AttributeDefinition} is not fully determined by itself as it 
-does not contain any information about object to which this attribute with value belongs. So another structure is {\tt ObjectDefinition}.
-This one is very similar to {\tt AttributeDefinition}, because it is also representing some kind of 
+does not contain any information about object to which this attribute with value belongs. So another structure is
+{\tt ObjectDefinition}. This one is very similar to {\tt AttributeDefinition}, because it is also representing some kind of 
 key - value structure. It contains kind name ({\tt Db::Identifier})) and object name ({\tt Db::Identifier})). The name 
 is fully qualified, so in case of one object embedded using relations to another, this name will contain symbol {\tt ->} 
 and both names. For example when we imagine kind "host" and embedded kind "interface". We can have one host -- "hpv2" 
@@ -71,12 +71,12 @@ objects with a specific characteristic. For example all interfaces of object "ho
 network.
 
 Because the work in the CLI is based mostly on the context stack as it is a natural way how to deal with the structure
-of data in the DB and DBAPI is based on functions working with single objects or filters, we have the implemented the
-class {\tt DbInteraction} to deal with conversion from context stack to format that is suitable for DBAPI.
+of data in the DB and DBAPI is based on functions working with single objects or filters, we have implemented the
+class {\tt DbInteraction} to deal with conversion from context stack to format that is suitable for DBAPI and vice versa.
 
 \subsection{Context stack conversion}
 
-As we described earlier, the context stack can be simple, without filters or more complicated with filters.
+As we described earlier, the context stack can be simple, without filters or more complicated, with filters.
 
 Conversion of {\tt ContextStack} to a single {\tt ObjectDefinition} is possible only when the {\tt ContextStack} does
 not contain any filters. This type of conversion is very straight forward and could be done without queries to the DB.
@@ -97,7 +97,7 @@ Another role of class {\tt DbInteraction} is caching of several types of data to
 This is because of the fact, that CLI uses the information provided by a server in a specific way that does not correspond
 with the format obtained from the server.
 
-First caching is made on DB structure. {\tt DbInteraction} stores names of kinds and their attributes in several maps
+First caching is made on DB structure. {\tt DbInteraction} stores names of kinds and their attributes and relations in several maps
 (we used nested {\tt std::map} for implementation of these structures) for fast access to data needed for operations with
 the DB. Information like to which kind each attribute refers, in which kind is some kind embedded and more are stored
 here. This is the caching made because of the format of the data.
@@ -108,10 +108,10 @@ the DB like creating objects, deleting objects, renaming objects and so on. This
 
 \section{UserInterface}
 
-Class {\tt UserInterface} is the central class holding the logics of the CLI. This class serves like a glue connecting
+Class {\tt UserInterface} is the central class holding the logics of the CLI. This class serves as a glue connecting
 all other components together.
 
-It is driven by two types of commands. First type are commands implemented as classes inherited from {\tt Command}.
+It is driven by two types of commands. First type are commands implemented as classes inherited from class {\tt Command}.
 
 \begin{minted}{c++}
 class Command
@@ -132,7 +132,7 @@ completion patterns, command name, and usage description for help generation. Th
 the Deska through pointer to {\tt UserInterface}. These command classes are stored in a map with their names as a key.
 After that they are picked up using this name. Executing the command is made by calling function {\tt bool operator()} with
 string as a parameter. This parameter could be then processed to influence behavior of each command. Return value is here
-to tell the other world is the executing of the command succeeded or not. Names and parameters of these commands
+to tell the other world if the executing of the command succeeded or not. Names and parameters of these commands
 are independent on DB structure. Their purpose are things like operations with changesets, dumping, backuping and restoring
 the DB and so on. We will describe each command separately in more detail later.
 
@@ -146,7 +146,8 @@ describe it later in a separate section. The parser itself does not change the d
 each action. These signals are caught and stored in the {\tt SignalsHandler}. Then comes two way processing of the stack,
 where in the first round each action represented by one signal is confirmed and then when all signals are confirmed, they
 are applied to the DB. The confirmation and applying is performed via functions implemented in the {\tt UserInterface},
-that you can see on the following snippet.
+that you can see on the following snippet. Each function calls functions from class {\tt UserInterfaceIO}
+to ask user for confirmation when necessary.
 
 \begin{minted}{c++}
 class UserInterface: public boost::noncopyable
@@ -272,13 +273,15 @@ kindExpr %= (eps(!_a) > kindDispatch >> -eoi[_a = true]);
 metadataExpr %= (eps(!_a) > metadataDispatch >> -eoi[_a = true]);
 
 // Kind name recognized -> try to parse object name
-kindDispatch = (raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))]
-    > operators[_b = _1] > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(
-        _b, phoenix::ref(currentKindName), "name", phoenix::construct<Db::Value>(_1))]);
+kindDispatch = (raw[keyword[kinds[_a = _1]]][rangeToString(
+    _1, phoenix::ref(currentKindName))] > operators[_b = _1] > lazy(_a)[
+        _val = phoenix::construct<Db::AttributeExpression>(
+            _b, phoenix::ref(currentKindName), "name", phoenix::construct<Db::Value>(_1))]);
 // Metadata name recognized -> try to parse metadata value
-metadataDispatch = (raw[metadatas[_a = _1]][rangeToString(_1, phoenix::ref(currentMetadataName))]
-    > operators[_b = _1] > lazy(_a)[_val = phoenix::construct<Db::MetadataExpression>(
-        _b, phoenix::ref(currentMetadataName), _1)]);
+metadataDispatch = (raw[keyword[metadatas[_a = _1]]][rangeToString(
+    _1, phoenix::ref(currentMetadataName))] > operators[_b = _1] > lazy(_a)[
+        _val = phoenix::construct<Db::MetadataExpression>(
+            _b, phoenix::ref(currentMetadataName), _1)]);
         
 phoenix::function<LogAttributeErrorHandler<Iterator> > attributeErrorHandler
     = LogAttributeErrorHandler<Iterator>();
@@ -513,8 +516,8 @@ nestedAttrExpr %= (eps(!_a) > dispatch >> -eoi[_a = true]);
 
 // Nested kind name recognized -> try to parse expression for the kind. The raw function is
 // here to get the name of the kind for which the expression is being parsed.
-dispatch = (raw[nestedAttributes[_a = _1]][rangeToString(_1, phoenix::ref(nestedKindName))] >
-           qi::lit(".") > lazy(_a))[_val = _2];
+dispatch = (raw[keyword[nestedAttributes[_a = _1]]][rangeToString(
+    _1, phoenix::ref(nestedKindName))] > qi::lit(".") > lazy(_a))[_val = _2];
 
 phoenix::function<KindFiltersErrorHandler<Iterator> > kindFiltersErrorHandler
     = KindFiltersErrorHandler<Iterator>();
@@ -547,13 +550,13 @@ dispatch %= dispatchAll | dispatchSets;
 
 // Attribute name recognized -> try to parse filter value. The raw function is here to
 // get the name of the attribute being parsed.
-dispatchAll = (raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] >>
-    operators[_b = _1] > lazy(_a)[_val = phoenix::bind(
-        &FilterExpressionsParser<Iterator>::constructFilter, this, _b,
+dispatchAll = (raw[keyword[attributes[_a = _1]]][rangeToString(
+    _1, phoenix::ref(currentAttributeName))] >> operators[_b = _1] > lazy(_a)[
+        _val = phoenix::bind(&FilterExpressionsParser<Iterator>::constructFilter, this, _b,
             phoenix::ref(currentAttributeName), phoenix::construct<Db::Value>(_1))]);
-dispatchSets = (raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] >>
-    setsOperators[_b = _1] > lazy(_a)[_val = phoenix::bind(
-        &FilterExpressionsParser<Iterator>::constructFilter, this, _b,
+dispatchSets = (raw[keyword[sets[_a = _1]]][rangeToString(
+    _1, phoenix::ref(currentAttributeName))] >> setsOperators[_b = _1] > lazy(_a)[
+        _val = phoenix::bind(&FilterExpressionsParser<Iterator>::constructFilter, this, _b,
             phoenix::ref(currentAttributeName), phoenix::construct<Db::Value>(_1))]);
 
 phoenix::function<AttributeFilterErrorHandler<Iterator> > attributeFilterErrorHandler
