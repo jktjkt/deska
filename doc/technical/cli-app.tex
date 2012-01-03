@@ -306,7 +306,7 @@ the grammar require more input on the end of the line, which is side effect of e
 \subsection{Diff}
 
 This function obtains list of {\tt Db::ObjectModificationResult} between two revisions or between changeset and its parent.
-This depends on the parameters given. The output depends on the destination. If it is a diff to file the modifications
+This depends on the parameters given. The output depends on the destination. If it is a diff to file, the modifications
 are sorted in the way like in {\tt Rebase}. This is because of the fact, that this output of the diff could be used for
 example for backing the work in the changeset up. So we have to for example create the object before we are referencing it
 in another object. This form of output is unfortunately not very user friendly. When the destination is a screen, the
@@ -315,7 +315,7 @@ the obtained modifications.
 
 \subsection{Dump}
 
-Dump is performing some visual picture of the whole DB. The output is the same when dumping to the file or to the screen.
+Dump is performing some visual picture of the whole DB. The output is the same when dumping to a file or to a screen.
 It is not intended to be used for backing anything up as it does not take any constraints in account.
 The principle is very simple. We have a list of all kinds that could not be embedded in any other. This gives us a list
 of "top-level" kinds. Now we can obtain instances of these kinds and for each instance we obtain list of embedded objects.
@@ -323,7 +323,7 @@ This is performed recursively. As the embedded objects can not live without thei
 
 \subsection{Batch}
 
-Class {\tt Batch} reads and performs commands readable by the {\tt Parser} from a file. It could be used for reading of
+Class {\tt Batch} reads and performs commands readable by the {\tt Parser} from a file. It could be used for reading
 an output from a diff.
 
 \subsection{Backup}
@@ -361,7 +361,7 @@ in order to perform restore. This is checked before any actions are made.
 \subsection{Execute}
 
 Command {\tt execute} was implemented mainly for testing purposes. It reads commands from a file and performs actions. It
-can read the same commands, that can be written to the CLI. The only difference is, that all command run in non-interactive
+can read the same commands as those that can be written to the CLI. The only difference is, that all commands run in non-interactive
 mode. This means, that user will not be asked for any confirmations as this would be impossible when reading commands from
 a file.
 
@@ -379,20 +379,22 @@ Their names are {\tt Start}, {\tt Resume}, {\tt Commit}, {\tt Detach}, {\tt Abor
 \section{Parser}
 
 The {\tt Parser} parses lines in the CLI, that does not begin with name of some command implemented through class {\tt Command}.
-The actions, you can perform though this parser do not depend only on the command written to the CLI, but also on the
+The actions, you can perform through this parser do not depend only on the command written to the CLI, but also on the
 context in which the parser currently is. It is based on many sub parsers stored in maps and calculated depending on the current context.
 
 The whole parser operates in one loop. At the beginning, before the loop, it tries to parse function words using
-{\tt functionWordsParser} to switch the parsing mode. It means whether the whole kinds including attributes definitions
-or only kind definitions will be parsed etc. After parsing the function words, parser will step into the main loop.
+{\tt FunctionWordsParser} to switch the parsing mode. It means whether the whole kinds including attributes definitions
+or only kind definitions will be parsed etc. After parsing the function words, parser will step into the main loop. Here
+the line is parsed using {\tt TopLevelParser} when the context is empty or using {\tt KindsParser} or {\tt WholeKindParser}
+depending on the parsing mode.
 
 Here the grammars are invoked until the whole line is parsed or until some parse error occurs. We have to parse
 the line in such loops because we are allowing so called inline operations. That means we can step into context of
-a object and set attributes of this object using only one line. Setting an attribute value requires the parser to
+an object and set attributes of this object using only one line. Setting an attribute value requires the parser to
 be in context of the object, which attribute are we going to set. So as you can see, context before parsing and
 during parsing can differ. The loops ensures, that after each parsed kind definition, the parsing is terminated so
 parser could change the parsing context and continue parsing by taking another grammar for the new context.
-The main loop terminates when the grammars in this loop fail or if the whole line was parsed.
+The main loop terminates when the grammars in this loop fails or when the whole line was parsed.
 
 After this main loop, the parser could take some more actions depending on the parse mode. For example parsing of
 a new name when renaming some object. After these actions the actual parsing finishes.
