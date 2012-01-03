@@ -133,7 +133,7 @@ the Deska through pointer to {\tt UserInterface}. These command classes are stor
 After that they are picked up using this name. Executing the command is made by calling function {\tt bool operator()} with
 string as a parameter. This parameter could be then processed to influence behavior of each command. Return value is here
 to tell the other world if the executing of the command succeeded or not. Names and parameters of these commands
-are independent on DB structure. Their purpose are things like operations with changesets, dumping, backuping and restoring
+are independent on DB structure. Their purpose are things like operations with changesets, dumping, backing up and restoring
 the DB and so on. We will describe each command separately in more detail later.
 
 The second type of commands are dependent on DB structure. They are used for manipulating data in the DB like setting attributes,
@@ -222,18 +222,18 @@ It means, that all objects deletions come first, then we have bunch of all renam
 we have modifications relating to attributes manipulations. These modifications are sorted by kind and object name so
 they can be nicely presented to the user. This order was chosen because of constraints in the DB. For example when
 we are creating some object, the object with the same name must not exist and so on. So deleting does not break any
-constraint any time. Rename is before create because then you can create an object with the same name as thw old one,
+constraint any time. Rename is before create because then you can create an object with the same name as the old one,
 but you will never need to perform create before rename to unblock rename. Setting attributes must be last as it
 requires an existing object.
 
 After this sorting and merging the result is stored in a temporary file, that is shown to the user using an interactive editor
 implemented in {\tt UserInterfaceIO}. Here the user can delete or modify the modifications. Modifications made by us can be
-editted simply as they do not exist in the new changeset and are in format readable by the {\tt Parser}. Modifications made by
-somebody else are shown only in format of comments as they are already commited. The user can influence the result by
-adding some extra lines with commands like renaming created objects and so on. When the user finishes editting of the
+edited simply as they do not exist in the new changeset and are in format readable by the {\tt Parser}. Modifications made by
+somebody else are shown only in format of comments as they are already committed. The user can influence the result by
+adding some extra lines with commands like renaming created objects and so on. When the user finishes editing of the
 modifications, the whole file is read by the {\tt Parser} and all modifications are performed. As a result we have a
 new changeset with modifications from both our old changeset and new revision made by someone else. When no problem
-occures, the old changeset is aborted and we can continue in work in the new changeset or commit it.
+occurs, the old changeset is aborted and we can continue in work in the new changeset or commit it.
 
 \subsection{Log}
 
@@ -419,7 +419,7 @@ The whole parser communicates with the outer world through emitting the signals 
     \item {\tt FilterExpressionsParser} -- parser creating one {\tt Db::AttributeExpression}, it means it parses comparisons between
                                            attribute names and their values
     \item {\tt FiltersParser} -- parser for regular filters for one specific kind employing {\tt FilterExpressionsParser}, this one parses
-                                 their conjuction and disjunction with braces 
+                                 their conjunction and disjunction with braces 
     \item {\tt KindsFiltersParser} -- parser connecting {\tt FiltersParser} and special filter parsers like {\tt all} 
     \item {\tt KindsParser} -- parser combining {\tt KindsOnlyParser}, {\tt KindsConstructParser} and {\tt FiltersParser}
     \item {\tt WholeKindParser} -- parser combining {\tt KindsParser} and {\tt AttributesParser}  
@@ -427,7 +427,7 @@ The whole parser communicates with the outer world through emitting the signals 
 \end{itemize}
 
 Figure \ref{img:deska-cli-parser} shows the structure of the parser. Arrows are showing, where the parser is used. Only the blue
-ones are used for parsing of an actual input. Others are only parts (sub-parsers) of other bigger units.
+ones are used for parsing of an actual input. Others are only parts (sub-parsers) of a bigger units.
 
 \begin{figure}[h]
     \centering
@@ -442,16 +442,16 @@ Now we will describe the single sub-grammars and error reporting in more detail.
 
 Class {\tt PredefinedRules} contains definitions of rules parsing values of all defined types. These rules are stored
 in the map indexed by a {\tt Db::Type}. It also contains rules for all metadata types used in revisions and changesets
-like parser of timestamps, revisions IDs, temporary changeset IDs and so on. You can see reference manual for more details.
+like parser of timestamps, revision IDs, temporary changeset IDs and so on. You can see reference manual for more details.
 Each rule has assigned its name used in error reporting.
 
-If some would like to extend the Deska with more data types, he has to implement also rule for parsing of this datatype
+If anybody would like to extend the Deska with more data types, he has to implement also rule for parsing of this datatype
 and store it under appropriate {\tt Db::Type}. Nothing more is needed.
 
 \subsection{AttributeParser}
 
 As we wrote, this parser consists of {\tt AttributesSettingParser}, {\tt AttributeRemovalsParser} and {\tt IdentifiersSetsParser}.
-This is made by operator "or".
+This combination is made using operator "or".
 
 {\tt AttributesSettingParser} parses only one pair from set of <attribute\_name> <attribute\_value> definitions, {\tt AttributeRemovalsParser}
 parses a pair {\tt no <attribute\_name>} and {\tt IdentifiersSetsParser} parses commands like {\tt add <set\_name> <identifier>} or
@@ -460,7 +460,7 @@ one attribute. It means, that parse accepts any attribute of a specific kind, bu
 For parsing set of these pairs, use some {\tt boost::spirit} operator like Kleene star.
 
 All these grammars are based on a symbols tables with lazy lookup function. This method could be found
-under name "Nabialek trick". This is the same trick as we used in {\tt LogFilterParser}. Each parsed comand is sent to the
+under name "Nabialek trick". This is the same trick as we used in {\tt LogFilterParser}. Each parsed command is sent to the
 main parser (parent) using semantic actions {\tt parsedAttribute()}, {\tt parsedAdd()} or {\tt parsedRemove()}.
 
 These parsers are connected to error handlers {\tt AttributeRemovalErrorHandler}/{\tt AttributeErrorHandler} for reporting an error
@@ -495,13 +495,13 @@ There is also one {\tt KindsOnlyParser} and {\tt KindsConstructParser} for each 
 {\tt FiltersParser} works, as all other grammars, on basis of "Nabialek trick". Here the trick is a little bit tuned up.
 Normally this trick works on symbols table with rules. It is not possible to do it on grammars as symbols tables are not
 able to work with them. {\tt Spirit} allows to assign a {\tt qi::grammar} to a {\tt qi::rule}. This creates a reference
-to the grammar stored in this rule. Now we can store this rule in a symols table and use "Nabialek trick" with grammars.
+to the grammar stored in this rule. Now we can store this rule in a symbols table and use "Nabialek trick" with grammars.
 
 Each kind has its own {\tt FiltersParser}. This parser has one {\tt FilterExpressionsParser} for parsing of filters
 on own attributes and symbols table is filled with instances of {\tt FilterExpressionsParser} for filters on attributes
 of somehow connected kinds (by relations). The symbols table is indexed by kind name and each parser is then accessed
 using kind name and dot. For example {\tt interface.ipv4 == 192.168.1.1}. The structure of the {\tt FiltersParser} is quite
-well ilustrated by the following code snippet.
+well illustrated by the following code snippet.
 
 \begin{minted}{c++}
 start %= ((qi::lit("(") >> andFilter >> qi::lit(")"))
@@ -569,15 +569,15 @@ on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4,
     phoenix::ref(currentAttributeName), phoenix::ref(m_name), m_parent));
 \end{minted}
 
-You can see, that error handler are there the same as in {\tt AttributesSettingParser} and has also the same function here.
+You can see, that error handlers are there the same as in {\tt AttributesSettingParser} and has also the same function here.
 Another point to mention here is, that the return value of the rule {\tt start} is the final {\tt Db::AttributeExpression},
 that is then processed by {\tt FiltersParser} and more complicated filters are constructed here by conjunction or disjunction
-of these {\tt Db::AttributeExpression}s.
+of these {\tt Db::AttributeExpression} classes.
 
 \subsection{WholeKindParser and TopLevelParser}
 
 These two parsers only combine another sub-parsers into one. {\tt TopLevelParser} combines {\tt KindsOnlyParser} and
-{\tt KindsFiltersParser}. Top-level parser is used every time the {\tt ContextStack} is empty. This parser contains subparsers
+{\tt KindsFiltersParser}. Top-level parser is used every time the {\tt ContextStack} is empty. This parser contains sub-parsers
 of each kind, because you can write a filter for any kind from the top level as well as jump in the context of any kind.
 
 {\tt WholeKindParser} is used for parsing of kinds, when the context stack is not empty. So it combines {\tt AttributesParser}
@@ -602,7 +602,7 @@ error handlers.
     \item {\tt ObjectNameErrorHandler} - {\tt PARSE\_ERROR\_TYPE\_OBJECT\_NAME}
 \end{itemize}
 
-Now the errors are reported due to a priority of the error types. As we described while writing about class {\tt Log},
+Now the errors are reported depending on a priority of the error types. As we described while writing about class {\tt Log},
 the error handlers are invoked recursively. For example when we are writing an attribute definition and we do some error
 in the value, the {\tt ValueErrorHandler} is invoked, but also due to cascading {\tt AttributeErrorHandler} is invoked as well.
 That is why we have to process this context stack and not print the error directly from the handler.
@@ -617,7 +617,7 @@ The priority of the error types is following:
                                                         parser when it expects identifier for action "rename"
     \item {\tt PARSE\_ERROR\_TYPE\_OBJECT\_NOT\_FOUND} - this error is not generated by error handlers, but is
                                                     generated by the main parser when it requires an existing object
-    \item {\tt PARSE\_ERROR\_TYPE\_KIND\_NESTING} - this error is generated by main parser when it recognises error while trying
+    \item {\tt PARSE\_ERROR\_TYPE\_KIND\_NESTING} - this error is generated by main parser when it recognizes error while trying
                                                 to parse nested kind name when entering context of an object
     \item {\tt PARSE\_ERROR\_TYPE\_KINDS\_CONSTRUCT}
     \item {\tt PARSE\_ERROR\_TYPE\_IDENTIFIERS\_SET}
