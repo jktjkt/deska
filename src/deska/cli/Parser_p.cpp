@@ -1536,11 +1536,9 @@ std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<Iterator>::pa
     typedef std::vector<std::pair<Db::Identifier, Db::Identifier> > Vect;
     Vect containedRecursivelyTotal = parserKindsContains(kindName);
 
-    for (Vect::const_iterator it = containedRecursivelyTotal.begin();
-         it != containedRecursivelyTotal.end(); ++it) {
-        Vect containedRecursively = parserKindsContainedRecursively(it->second);
-        containedRecursivelyTotal.insert(containedRecursivelyTotal.end(), containedRecursively.begin(),
-            containedRecursively.end());
+    for (size_t i = 0; i < containedRecursivelyTotal.size(); ++i) {
+        Vect containedRecursively = parserKindsContainedRecursively(containedRecursivelyTotal[i].second);
+        containedRecursivelyTotal.insert(containedRecursivelyTotal.end(), containedRecursively.begin(), containedRecursively.end());
     }
 
     return containedRecursivelyTotal;
