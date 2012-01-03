@@ -45,6 +45,7 @@ Summary: The Deska shared libraries
 Group: Applications/System
 License: GPLv2+
 Requires: boost-system >= 1.41.0
+Requires: boost-filesystem >= 1.41.0
 Requires: boost-date-time >= 1.41.0
 Requires: boost-python >= 1.41.0
 
