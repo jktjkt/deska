@@ -1533,12 +1533,10 @@ std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<Iterator>::pa
 {
     typedef std::vector<std::pair<Db::Identifier, Db::Identifier> > Vect;
     Vect res = parserKindsContains(kindName);
-
     for (size_t i = 0; i < res.size(); ++i) {
         Vect another = parserKindsContainedRecursively(res[i].second);
         res.insert(res.end(), another.begin(), another.end());
     }
-
     return res;
 }
 
