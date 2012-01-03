@@ -210,7 +210,7 @@ Rebase firstly creates a new changeset, which will be connected to a newest revi
 {\tt Db::ObjectModificationResult}. First one is diff of the new parent with our old parent. This represents changes
 made by somebody else while we were working. The second set of modifications is diff between our old changeset and
 our old parent. This represents changes made by us. These sets has to be somehow merged and shown to the user in order
-to see, haw the final result of merge will look like and also in order to influence the result of this merge.
+to see, how the final result of merge will look like and also in order to influence the result of this merge.
 The merge is performed by several comparators and the result has to be in the following order:
 \begin{enumerate}
     \item {\tt Db::DeleteObjectModification}
