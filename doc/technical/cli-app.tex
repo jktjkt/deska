@@ -203,13 +203,13 @@ Now we will describe how the more complicated commands from the first group work
 
 Class {\tt Rebase} is quite complicated one. It's purpose is to reconnect current changeset from its parent to a new
 one. It solves the problem, that our history is linear. So when we are in a changeset inherited from some revision and
-somebody else creates new revision, we are not albe to commit ours. Rebase is solving this problem without loosing
+somebody else creates a new revision, we are not able to commit ours. Rebase is solving this problem without loosing
 changes we made.
 
 Rebase firstly creates a new changeset, which will be connected to a newest revision. Then it obtains two sets of
 {\tt Db::ObjectModificationResult}. First one is diff of the new parent with our old parent. This represents changes
 made by somebody else while we were working. The second set of modifications is diff between our old changeset and
-our old parent. This represents changes made by us. These sets has to be somehow merged and shown to a user in order
+our old parent. This represents changes made by us. These sets has to be somehow merged and shown to the user in order
 to see, haw the final result of merge will look like and also in order to influence the result of this merge.
 The merge is performed by several comparators and the result has to be in the following order:
 \begin{enumerate}
@@ -222,23 +222,22 @@ It means, that all objects deletions come first, then we have bunch of all renam
 we have modifications relating to attributes manipulations. These modifications are sorted by kind and object name so
 they can be nicely presented to the user. This order was chosen because of constraints in the DB. For example when
 we are creating some object, the object with the same name must not exist and so on. So deleting does not break any
-constraint any time. Rename is before create because you can create then the object of the same name as an old one,
+constraint any time. Rename is before create because then you can create an object with the same name as thw old one,
 but you will never need to perform create before rename to unblock rename. Setting attributes must be last as it
 requires an existing object.
 
 After this sorting and merging the result is stored in a temporary file, that is shown to the user using an interactive editor
-implemented in {\tt UserInterfaceIO}. Here the user can delete or modify the modifications. When the editing part is
-finished, the corrected list is processed and all modifications are performed. Modifications made by us can be editted
-simply as they do not exist in the new changeset and are in format readable by the {\tt Parser}. Modifications made by
+implemented in {\tt UserInterfaceIO}. Here the user can delete or modify the modifications. Modifications made by us can be
+editted simply as they do not exist in the new changeset and are in format readable by the {\tt Parser}. Modifications made by
 somebody else are shown only in format of comments as they are already commited. The user can influence the result by
 adding some extra lines with commands like renaming created objects and so on. When the user finishes editting of the
 modifications, the whole file is read by the {\tt Parser} and all modifications are performed. As a result we have a
 new changeset with modifications from both our old changeset and new revision made by someone else. When no problem
-occures old changeset is aborted and we can continue in work in the new changeset or commit it.
+occures, the old changeset is aborted and we can continue in work in the new changeset or commit it.
 
 \subsection{Log}
 
-Function {\tt bool Log::operator()} when executed without parameters only obtains list of all revisions in the DB and
+Function {\tt bool Log::operator()}, when executed without parameters, only obtains list of all revisions in the DB and
 prints this list using {\tt UserInterfaceIO} to the screen. The more interesting part of this class is parameters parser.
 It is based on {\tt boost::spirit} as well as the {\tt Parser}. Parsing of parameters is done by class {\tt LogFilterParser}.
 An output of this class is a {\tt Db::Filter}, that will be used directly for obtaining the list of revisions and similarly
@@ -250,8 +249,8 @@ the runtime. This is because of the fact, that we have to parse kind names, that
 from the DB. In the first symbols table there are names of metadata (author, timestamp, ...) and is filled at compile time
 directly in the constructor. The second one is empty and will be filled using function {\tt void addKind(const Db::Identifier \&kindName)}.
 The third table contains operators. This parser is connected to three error handlers. {\tt LogAttributeErrorHandler}
-for reporting an error while parsing an metadata name or a kind name, {\tt LogIdentifierErrorHandler} for reporting errors
-while parsing of an object name and {\tt LogValueErrorHandler} for reporting an error while parsing a value of some
+for reporting an error while parsing a metadata name or a kind name, {\tt LogIdentifierErrorHandler} for reporting errors
+while parsing an object name and {\tt LogValueErrorHandler} for reporting an error while parsing a value of some
 metadata. The {\tt boost::spirit} error handlers ale classes with function {\tt operator()}, that will be invoked every time
 when the matching of the input to a specific rule fails. Each rule could have associated a number of error handlers. The
 problem of this way how error handlers work is, that when some rule fails, error handlers of other rules containing this one
