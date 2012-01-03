@@ -24,6 +24,10 @@
 
 #include <iostream>
 #include <string>
+// Boost.Process requires filesystemv2, and it hurts if we try to use incompatible versions.
+// I have no idea what these guys are smoking...
+#define BOOST_FILESYSTEM_VERSION 2
+#include <boost/filesystem.hpp>
 #include "deska/db/Connection.h"
 #include "deska/db/JsonException.h"
 #include "DbInteraction.h"
@@ -114,6 +118,9 @@ int main(int argc, char **argv)
                       << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
             return 0;
         }
+
+        // Be sure to create the directory for the history file
+        boost::filesystem::create_directories(boost::filesystem::path(config.getVar<std::string>(Deska::Cli::CLI_HistoryFilename)).directory_string());
 
         Deska::Db::Connection conn(config.getVar<std::vector<std::string> >(Deska::Cli::DBConnection_Server));
         Deska::Cli::Parser parser(&conn);

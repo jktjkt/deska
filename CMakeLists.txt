@@ -51,12 +51,12 @@ add_definitions(-DCMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 # RHEL5 with EPEL Boost
 SET(BOOST_INCLUDEDIR /usr/include/boost141)
 SET(BOOST_LIBRARYDIR /usr/lib64/boost141)
-FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time unit_test_framework python program_options)
+FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time unit_test_framework python program_options filesystem)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif(Boost_FOUND)
 # we do not want to link with whole boost here; there's simply no point in our libraries bringing the test framework in
-set(DESKA_BOOST_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+set(DESKA_BOOST_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
 
 FIND_PATH(LIBEBT_PATH libebt/libebt.hh
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0)
