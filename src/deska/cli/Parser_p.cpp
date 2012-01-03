@@ -1533,10 +1533,12 @@ std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbedsRecursively(c
 template <typename Iterator>
 std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<Iterator>::parserKindsContainedRecursively(const Db::Identifier &kindName)
 {
-    std::vector<std::pair<Db::Identifier, Db::Identifier> > containedRecursivelyTotal = parserKindsContains(kindName);
-    for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::const_iterator it = containedRecursivelyTotal.begin();
+    typedef std::vector<std::pair<Db::Identifier, Db::Identifier> > Vect;
+    Vect containedRecursivelyTotal = parserKindsContains(kindName);
+
+    for (Vect::const_iterator it = containedRecursivelyTotal.begin();
          it != containedRecursivelyTotal.end(); ++it) {
-        std::vector<std::pair<Db::Identifier, Db::Identifier> > containedRecursively = parserKindsContainedRecursively(it->second);
+        Vect containedRecursively = parserKindsContainedRecursively(it->second);
         containedRecursivelyTotal.insert(containedRecursivelyTotal.end(), containedRecursively.begin(),
             containedRecursively.end());
     }
