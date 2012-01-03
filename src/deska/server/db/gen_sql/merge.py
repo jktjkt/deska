@@ -328,6 +328,21 @@ LANGUAGE plpgsql;
             raise ValueError, ('relation composition is badly defined, kind %(tbl)s creates cycle' % {'tbl': table})
         else:
             if table not in self.composition_touples:
+                #transitive check of disjoint attributes
+                #attributes = set()
+                #record = self.plpy.execute(self.kind_attributes_query_str % {'tbl': table})
+                #for row in record:
+                    #if row[0] not in self.composition_touples:
+                        #attributes.add(row[0])                 
+                #for tbl in composition_chain:
+                    #print composition_chain
+                    #record = self.plpy.execute(self.kind_attributes_query_str % {'tbl': tbl})
+                    #for row in record:
+                        #if row[0] in attributes:
+                            #raise ValueError, ('Composition relation between is badly defined, column sets of composed types should '
+                                #'be disjoint, column %s is in more tables') % (row[0])
+                        #if row[0] not in self.composition_touples:
+                            #attributes.add(row[0])                
                 return
             else:
                 composition_chain.append(table)
