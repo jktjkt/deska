@@ -231,13 +231,21 @@ public:
     */
     std::vector<ObjectDefinition> connectedObjectsTransitively(const ContextStack &context);
 
-    /** @short Function for obtaining kind names referred by some attribute in some kind.
+    /** @short Function for obtaining kind names contained using some attribute in some kind.
     *   
     *   @param kind Kind name containing referring attribute
     *   @param attribute Referring attribute
-    *   @return referred kind or empty identifier if no kind referred
+    *   @return contained kind or empty identifier if no kind contained
     */
-    Db::Identifier referredKind(const Db::Identifier &kind, const Db::Identifier &attribute);
+    Db::Identifier containedKind(const Db::Identifier &kind, const Db::Identifier &attribute);
+
+    /** @short Function for obtaining kind names containable by some attribute in some kind.
+    *   
+    *   @param kind Kind name containing referring attribute
+    *   @param attribute Referring attribute
+    *   @return containable kind or empty identifier if no kind containable
+    */
+    Db::Identifier containableKind(const Db::Identifier &kind, const Db::Identifier &attribute);
 
     /** @short Function for obtaining all pending chandesets.
     *
@@ -390,7 +398,9 @@ private:
     /** Map of kinds and vector of kinds, that are contained with the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > containable;
     /** Map of kinds, their attributes and kinds, that are contained using these attributes. */
-    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> > referringAttrs;
+    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> > referringAttrsCont;
+    /** Map of kinds, their attributes and kinds, that are containable using these attributes. */
+    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> > referringAttrsCble;
     /** List of read-only attributes for each kind */
     std::map<Db::Identifier, std::vector<Db::Identifier> > readonlyAttributes;
 

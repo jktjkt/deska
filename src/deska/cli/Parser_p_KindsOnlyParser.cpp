@@ -60,7 +60,7 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
 
     // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
     // attribute being parsed.
-    dispatch = (raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))]
+    dispatch = (raw[keyword[kinds[_a = _1]]][rangeToString(_1, phoenix::ref(currentKindName))]
         > lazy(_a)[phoenix::bind(&KindsOnlyParser::parsedKind, this, phoenix::ref(currentKindName), _1)]);
 
     phoenix::function<KindErrorHandler<Iterator> > kindErrorHandler = KindErrorHandler<Iterator>();

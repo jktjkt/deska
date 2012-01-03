@@ -250,7 +250,7 @@ Resume::Resume(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "resume";
     cmdUsage = "Displays list of pending changesets with ability to connect to one.";
-    complPatterns.push_back("resume tmp");
+    complPatterns.push_back("resume");
 }
 
 

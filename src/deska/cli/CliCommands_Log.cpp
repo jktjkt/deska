@@ -37,6 +37,7 @@
 #include "deska/db/JsonApi.h"
 #include "RangeToString.h"
 #include "Parser.h"
+#include "ParserKeyword.h"
 
 
 namespace Deska {
@@ -217,11 +218,11 @@ LogFilterParser<Iterator>::LogFilterParser(Log *parent): LogFilterParser<Iterato
     metadataExpr %= (eps(!_a) > metadataDispatch >> -eoi[_a = true]);
 
     // Kind name recognized -> try to parse object name
-    kindDispatch = (raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > operators[_b = _1]
+    kindDispatch = (raw[keyword[kinds[_a = _1]]][rangeToString(_1, phoenix::ref(currentKindName))] > operators[_b = _1]
         > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(_b, phoenix::ref(currentKindName), 
             "name", phoenix::construct<Db::Value>(_1))]);
     // Metadata name recognized -> try to parse metadata value
-    metadataDispatch = (raw[metadatas[_a = _1]][rangeToString(_1, phoenix::ref(currentMetadataName))] > operators[_b = _1]
+    metadataDispatch = (raw[keyword[metadatas[_a = _1]]][rangeToString(_1, phoenix::ref(currentMetadataName))] > operators[_b = _1]
         > lazy(_a)[_val = phoenix::construct<Db::MetadataExpression>(_b, phoenix::ref(currentMetadataName), _1)]);
     
     phoenix::function<LogAttributeErrorHandler<Iterator> > attributeErrorHandler = LogAttributeErrorHandler<Iterator>();

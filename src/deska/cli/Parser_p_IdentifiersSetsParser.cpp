@@ -54,15 +54,15 @@ IdentifiersSetsParser<Iterator>::IdentifiersSetsParser(const Db::Identifier &kin
     // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
     // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
     // require more input on the end of the line, which is side effect of eps usage in this way.
-    start = (qi::lit("add") > dispatchAdd)
-          | (qi::lit("remove") > dispatchRemove);
+    start = (keyword["add"] > dispatchAdd)
+          | (keyword["remove"] > dispatchRemove);
 
     // Set name recognized -> try to parse identifier. The raw function is here to get the name of the
     // set which maniulations are being parsed.
-    dispatchAdd = ((raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentSetName))]
+    dispatchAdd = ((raw[keyword[sets[_a = _1]]][rangeToString(_1, phoenix::ref(currentSetName))]
         > lazy(_a)[phoenix::bind(&IdentifiersSetsParser::parsedAdd, this,
             phoenix::ref(currentSetName), _1)]));
-    dispatchRemove = ((raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentSetName))]
+    dispatchRemove = ((raw[keyword[sets[_a = _1]]][rangeToString(_1, phoenix::ref(currentSetName))]
         > lazy(_a)[phoenix::bind(&IdentifiersSetsParser::parsedRemove, this,
             phoenix::ref(currentSetName), _1)]));
 
