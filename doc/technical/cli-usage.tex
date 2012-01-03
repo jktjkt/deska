@@ -11,10 +11,10 @@ The following chapter serves as a users' guide to the CLI application.
 
 \section{Introduction}
 
-The Deska CLI is a console application serving as an exclusive tool for manipulating data in the DB. For running the
+The Deska CLI is a console application serving as an exclusive tool for manipulating data in the Deska DB. For running the
 CLI, some parameters and configuration file must be set. For details refer section \ref{sec:cli-connection-setup}.
 
-There is no need for recompiling the CLI when the DB schema changes. All information and structures are build on the
+There is no need for recompiling the CLI when the DB schema changes. All information and structures are build and obtained on the
 CLI startup, so restarting the CLI is enough.
 
 You can exit the CLI using command {\tt exit} or {\tt quit} or using shortcut "Ctrl + D".
@@ -23,11 +23,10 @@ You can exit the CLI using command {\tt exit} or {\tt quit} or using shortcut "C
 
 When the CLI is started, you will se the command prompt, where the commands could be entered. The prompt has its context.
 The context is something like a path to some object where each object in the path is nested to the previous. 
-It means, that all commands manipulating, or working with objects will now be related to this context. This behavior
-is very similar to an ordinary unix prompt where under context we can imagine a current directory where we are. Actually the
-context could represent a set of objects, because it can contain also filters, not only single object definitions.
-We will talk about filters later. Context means, that all commands manipulating, or working with objects will now be related to
-object or objects represented by this context. This behavior is very similar to an ordinary unix prompt where under context
+It means, that all commands manipulating, or working with objects will now be related to object or objects represented by this context.
+This behavior is very similar to an ordinary unix prompt where under context we can imagine a current directory where we are.
+Actually the context could represent a set of objects, because it can contain also filters, not only single object definitions.
+We will talk about filters later. This behavior is very similar to an ordinary unix prompt where under context
 we can imagine a current directory where we are. In unix prompt all commands like {\tt ls}, {\tt cd}, {\tt mv} and so on
 are also related to the current directory.
 
@@ -74,8 +73,8 @@ attributes directly from this kind, or kinds, that are contained in this one. Th
 containing attributes of any kind, that is in some relation with this one. With relations we mean standard Deska relations
 like "embed into", "contains" and "containable" and "refers to". These attributes should be prefixed by name of their
 kind with dot. For example {\tt interface.ipv4}. There are two sets of operators, that can be used in expressions. First
-set is for standard attributes: {\tt <}, {\tt >}, {\tt <=}, {\tt >=}, {\tt !=} or {\tt <>} and {\tt =} or {\tt ==}. The second set is for identifiers
-sets. There are only two operators: {\tt contains} and {\tt not\_contains}.
+set is for standard attributes: {\tt <}, {\tt >}, {\tt <=}, {\tt >=}, {\tt !=} or {\tt <>} and {\tt =} or {\tt ==}.
+The second set is for identifiers sets. There are only two operators: {\tt contains} and {\tt not\_contains}.
 
 Filters are an exception in a concept of context. Normally we can not be in context of a specific interface without being
 in context of its host. Filters are a little bit different as a set of interfaces should not have one shared parent. So
@@ -177,12 +176,13 @@ end
 \end{minted}
 
 Another method is using command {\tt show}. When the user has not entered a context yet, this command shows only list of top-level objects without any
-additional information. When in a context, it will display information about object or objects from the current context. The
+additional information. When there is a context, it will display information about object or objects from the current context. The
 information contains all attributes with resolved values from templates. When some attribute value was taken from
 a template, information about source of this value is also printed. If some object is contained in one being currently
-printed, its attributes and nested kinds will be printed under attribute referring to that object. Nested objects are
-printed in a way similar to the output from the command {\tt dump}. Example of output from {\tt show} on a host containing some hardware
-through attribute "hardware" with attribute "ram" inherited from template for hardware with name "hp357":
+printed, its attributes and nested kinds will be printed under attribute referring to that object. Attribute referring back to its parent
+are not displayed as their values does not give any useful information. Nested objects are printed in a way similar to the output from the
+command {\tt dump}. Example of output from {\tt show} on a host containing some hardware through attribute "hardware" with attribute "ram"
+inherited from template for hardware with name "hp357":
 
 \begin{minted}{text}
 > host hpv2
@@ -191,7 +191,6 @@ hardware hpv2
     cpu_ht 1
     cpu_num 4
     no hepcpec
-    host hpv2
     no note_hardware
     purchase 2011-12-23
     ram 4096 -> hp357
@@ -214,8 +213,8 @@ end
 
 Command {\tt show} could be used also for printing information about objects outside of the current context. Like {\tt show host hpv2} or
 {\tt show host hpv2 interface eth0}. This form will print the requested information without changing the current context.
-The parameter can refer both to the top-level objects and to those in the current context. It means that in context of host "hpv2" you can type {\tt show interface eth0}
-for showing information about interface "eth0" nested in host "hpv2".
+The parameter can refer both to the top-level objects and to those in the current context. It means that in context of host "hpv2" you can
+type {\tt show interface eth0} for showing information about interface "eth0" nested in host "hpv2".
 
 \section{Work with changesets}
 
