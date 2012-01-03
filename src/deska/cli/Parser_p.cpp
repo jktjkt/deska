@@ -595,18 +595,11 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
             filterExpressionsParser->addAtrributeToFilter(kindName, it->name, predefinedRules->getRule(it->type));
         }
     }
-    // Adding attributes from contained kinds
+    // Adding attributes to filters from contained kinds
     for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator itm = contains[kindName].begin(); itm != contains[kindName].end(); ++itm) {
         std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(itm->second);
         for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-            std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[itm->second].begin(),
-                roAttributes[itm->second].end(), it->name);
-            if (itroat == roAttributes[itm->second].end()) {
-                attributesSettingParser->addAtrribute(itm->second, it->name, predefinedRules->getRule(it->type));
-                attributeRemovalsParser->addAtrribute(itm->second, it->name);
-            } 
             if (it->type == Db::TYPE_IDENTIFIER_SET) {
-                identifiersSetsParser->addIdentifiersSet(itm->second, it->name, predefinedRules->getObjectIdentifier());
                 filterExpressionsParser->addIdentifiersSetToFilter(itm->second, it->name, predefinedRules->getObjectIdentifier());
             } else {
                 filterExpressionsParser->addAtrributeToFilter(itm->second, it->name, predefinedRules->getRule(it->type));
@@ -615,6 +608,24 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
     }
     // Adding attribute "name" for filters
     filterExpressionsParser->addAtrributeToFilter(kindName, "name", predefinedRules->getRule(Db::TYPE_IDENTIFIER));
+
+    // Adding attributes from recursively contained kinds
+    std::vector<std::pair<Db::Identifier, Db::Identifier> > containedRecursively = parserKindsContainedRecursively(kindName);
+    for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator itm = containedRecursively.begin();
+         itm != containedRecursively.end(); ++itm) {
+        std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(itm->second);
+        for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
+            std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[itm->second].begin(),
+                roAttributes[itm->second].end(), it->name);
+            if (itroat == roAttributes[itm->second].end()) {
+                attributesSettingParser->addAtrribute(itm->second, it->name, predefinedRules->getRule(it->type));
+                attributeRemovalsParser->addAtrribute(itm->second, it->name);
+                if (it->type == Db::TYPE_IDENTIFIER_SET) {
+                    identifiersSetsParser->addIdentifiersSet(itm->second, it->name, predefinedRules->getObjectIdentifier());
+                }
+            } 
+        }
+    }
 }
 
 
@@ -1520,6 +1531,22 @@ std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbedsRecursively(c
 
 
 template <typename Iterator>
+std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<Iterator>::parserKindsContainedRecursively(const Db::Identifier &kindName)
+{
+    std::vector<std::pair<Db::Identifier, Db::Identifier> > containedRecursivelyTotal = parserKindsContains(kindName);
+    for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator it = containedRecursivelyTotal.begin();
+         it != containedRecursivelyTotal.end(); ++it) {
+        std::vector<std::pair<Db::Identifier, Db::Identifier> > containedRecursively = parserKindsContainedRecursively(it->second);
+        containedRecursivelyTotal.insert(containedRecursivelyTotal.end(), containedRecursively.begin(),
+            containedRecursively.end());
+    }
+
+    return containedRecursivelyTotal;
+}
+
+
+
+template <typename Iterator>
 bool ParserImpl<Iterator>::containsIdentifiersSet(const Db::Identifier &kindName)
 {
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
@@ -1608,6 +1635,8 @@ template void ParserImpl<iterator_type>::insertTabPossibilitiesOfCurrentContext(
 template void ParserImpl<iterator_type>::insertTabPossibilitiesFromErrors(const std::string &line, std::vector<std::string> &possibilities);
 
 template std::vector<Db::Identifier> ParserImpl<iterator_type>::parserKindsEmbedsRecursively(const Db::Identifier &kindName);
+
+template std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<iterator_type>::parserKindsContainedRecursively(const Db::Identifier &kindName);
 
 template bool ParserImpl<iterator_type>::containsIdentifiersSet(const Db::Identifier &kindName);
 

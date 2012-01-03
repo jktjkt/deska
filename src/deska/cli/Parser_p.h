@@ -298,6 +298,16 @@ private:
     */
     std::vector<Db::Identifier> parserKindsEmbedsRecursively(const Db::Identifier &kindName);
 
+    /** @short Obtains list of recursively contained kinds for given kind name.
+    *
+    *   If kind A contains kind B and kind B contains kind C, then this function will return vector containing
+    *   B and C for kind A.
+    *   
+    *   @param kindName Kind name for which the contained kinds will be obtained
+    *   @return Vector of recursively contained kinds including referring kind
+    */
+    std::vector<std::pair<Db::Identifier, Db::Identifier> > parserKindsContainedRecursively(const Db::Identifier &kindName);
+
     /** @short Checks if the kind contains some attribute of type TYPE_IDENTIFIER_SET
     *
     *   @param kindName Name of the kind
