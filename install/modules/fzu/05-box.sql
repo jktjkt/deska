@@ -40,7 +40,7 @@ CREATE TABLE box (
 		CONSTRAINT "'y' cannot be negative number" CHECK (y >= 0),
 	z int
 		CONSTRAINT "'z' cannot be negative number" CHECK (z >= 0),
-	note text
+	note_box text
 );
 
 CREATE INDEX id_box_direct_modelbox ON box(direct_modelbox);
