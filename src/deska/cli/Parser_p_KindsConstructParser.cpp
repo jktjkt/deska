@@ -52,9 +52,9 @@ KindsConstructParser<Iterator>::KindsConstructParser(const Db::Identifier &kindN
     namespace phoenix = boost::phoenix;
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    start = (qi::lit("new") > dispatch);
+    start = (keyword["new"] > dispatch);
 
-    dispatch = raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
+    dispatch = raw[keyword[kinds[_a = _1]]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
         [phoenix::bind(&KindsConstructParser::parsedObjectCreation, this, phoenix::ref(currentKindName))];
 
     phoenix::function<KindConstructErrorHandler<Iterator> > kindConstructErrorHandler =

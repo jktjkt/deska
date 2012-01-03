@@ -587,14 +587,22 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
     bool printEnd = false;
     std::vector<std::pair<AttributeDefinition, Db::Identifier> > attributes =
         m_dbInteraction->allAttributesResolvedWithOrigin(object);
+    Db::Identifier localName = pathToVector(object.name).back();
     for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::iterator it = attributes.begin();
-         it != attributes.end();) {
-        Db::Identifier containable = m_dbInteraction->referredKind(object.kind, it->first.attribute);
-        if (contained && (!containable.empty()) && (containable == contained->kind) &&
-            (it->first.value == Db::Value(contained->name)))
-            attributes.erase(it);
-        else
-            ++it;
+         it != attributes.end(); ++it) {
+        if ((it->second == localName) || (it->second == object.name))
+            it->second.clear();
+    }
+    if (contained) {
+        for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::iterator it = attributes.begin();
+             it != attributes.end();) {
+            Db::Identifier containable = m_dbInteraction->containableKind(object.kind, it->first.attribute);
+            if (!containable.empty() && (containable == contained->kind) &&
+                (it->first.value == Db::Value(contained->name)))
+                attributes.erase(it);
+            else
+                ++it;
+        }
     }
     printEnd = printEnd || !attributes.empty();
     std::vector<ObjectDefinition> containedObjs = m_dbInteraction->containedObjects(object);
@@ -605,7 +613,7 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
         for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::iterator it = attributes.begin();
              it != attributes.end(); ++it) {
             io->printAttributeWithOrigin(it->first, it->second, depth);
-            Db::Identifier contains = m_dbInteraction->referredKind(object.kind, it->first.attribute);
+            Db::Identifier contains = m_dbInteraction->containedKind(object.kind, it->first.attribute);
             if (!contains.empty()) {
                 std::vector<ObjectDefinition>::iterator itmo = std::find(containedObjs.begin(), containedObjs.end(),
                     ObjectDefinition(contains, object.name));

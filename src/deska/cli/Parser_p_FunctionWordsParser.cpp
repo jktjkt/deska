@@ -35,10 +35,10 @@ template <typename Iterator>
 FunctionWordsParser<Iterator>::FunctionWordsParser(ParserImpl<Iterator> *parent):
     FunctionWordsParser<Iterator>::base_type(start), m_parent(parent)
 {
-    start = ((qi::lit("create")[phoenix::bind(&FunctionWordsParser::actionCreate, this)])
-           | (qi::lit("delete")[phoenix::bind(&FunctionWordsParser::actionDelete, this)])
-           | (qi::lit("show")[phoenix::bind(&FunctionWordsParser::actionShow, this)])
-           | (qi::lit("rename")[phoenix::bind(&FunctionWordsParser::actionRename, this)]));
+    start = ((keyword["create"][phoenix::bind(&FunctionWordsParser::actionCreate, this)])
+           | (keyword["delete"][phoenix::bind(&FunctionWordsParser::actionDelete, this)])
+           | (keyword["show"][phoenix::bind(&FunctionWordsParser::actionShow, this)])
+           | (keyword["rename"][phoenix::bind(&FunctionWordsParser::actionRename, this)]));
 }
 
 

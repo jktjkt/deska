@@ -50,13 +50,13 @@ DbInteraction::DbInteraction(Db::Api *api):
 
             if (itr->kind == Db::RELATION_CONTAINABLE) {
                 containable[*itk].push_back(itr->target);
-                referringAttrs[*itk][itr->column] = itr->target;
+                referringAttrsCble[*itk][itr->column] = itr->target;
                 readonlyAttributes[*itk].push_back(itr->column);
             }
 
             if (itr->kind == Db::RELATION_CONTAINS) {
                 contains[*itk].push_back(itr->target);
-                referringAttrs[*itk][itr->column] = itr->target;
+                referringAttrsCont[*itk][itr->column] = itr->target;
                 readonlyAttributes[*itk].push_back(itr->column);
             }
 
@@ -499,10 +499,24 @@ std::vector<ObjectDefinition> DbInteraction::connectedObjectsTransitively(const 
 
 
 
-Db::Identifier DbInteraction::referredKind(const Db::Identifier &kind, const Db::Identifier &attribute)
+Db::Identifier DbInteraction::containedKind(const Db::Identifier &kind, const Db::Identifier &attribute)
 {
-    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> >::const_iterator it = referringAttrs.find(kind);
-    if (it == referringAttrs.end())
+    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> >::const_iterator it = referringAttrsCont.find(kind);
+    if (it == referringAttrsCont.end())
+        return Db::Identifier();
+    std::map<Db::Identifier, Db::Identifier>::const_iterator it2 = it->second.find(attribute);
+    if (it2 == it->second.end())
+        return Db::Identifier();
+    else
+        return it2->second;
+}
+
+
+
+Db::Identifier DbInteraction::containableKind(const Db::Identifier &kind, const Db::Identifier &attribute)
+{
+    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> >::const_iterator it = referringAttrsCble.find(kind);
+    if (it == referringAttrsCble.end())
         return Db::Identifier();
     std::map<Db::Identifier, Db::Identifier>::const_iterator it2 = it->second.find(attribute);
     if (it2 == it->second.end())
