@@ -20,7 +20,7 @@
 
 
 project(deska)
-SET(DESKA_VERSION 0.99)
+SET(DESKA_VERSION 1.0)
 SET(DESKA_SOVERSION 1.0)
 
 cmake_minimum_required(VERSION 2.6)
