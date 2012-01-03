@@ -710,8 +710,22 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     std::cout << "Start context stack: " << contextStackToString(contextStack) << std::endl;
 #endif
 
+    bool somethingToParse = false;
+    for (std::string::const_iterator it = line.begin(); it != line.end(); ++it) {
+        if ((*it != ' ') && (*it != '\t') && (*it != '\n')) {
+            somethingToParse = true;
+            break;
+        }
+    }
+    if (!somethingToParse) {
+#ifdef PARSER_DEBUG
+        std::cout << "Nothing to parse" << std::endl;
+#endif
+        return true;
+    }
+
     Iterator iter = line.begin();
-    Iterator end = line.end(); 
+    Iterator end = line.end();
 
     parseErrors.clear();
 

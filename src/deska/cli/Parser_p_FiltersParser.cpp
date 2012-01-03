@@ -71,7 +71,7 @@ FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName,
 
     // Nested kind name recognized -> try to parse expression for the kind. The raw function is here to get the name
     // of the kind for which the expression is being parsed.
-    dispatch = (raw[nestedAttributes[_a = _1]][rangeToString(_1, phoenix::ref(nestedKindName))] >
+    dispatch = (raw[keyword[nestedAttributes[_a = _1]]][rangeToString(_1, phoenix::ref(nestedKindName))] >
                qi::lit(".") > lazy(_a))[_val = _2];
 
     phoenix::function<KindFiltersErrorHandler<Iterator> > kindFiltersErrorHandler = KindFiltersErrorHandler<Iterator>();

@@ -66,21 +66,21 @@ KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName,
 
     specialFilter = specialFilterA | specialFilterL;
 
-    specialFilterL = (qi::lit("last") > lastKind);
+    specialFilterL = (keyword["last"] > lastKind);
 
-    specialFilterA = (qi::lit("all") > keywordAll);
+    specialFilterA = (keyword["all"] > keywordAll);
 
     // Kind name recognized -> try to parse attribute value. The raw function is here to get the name of the
     // attribute being parsed.
-    dispatch = (raw[filters[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > qi::lit("where")
+    dispatch = (raw[keyword[filters[_a = _1]]][rangeToString(_1, phoenix::ref(currentKindName))] > keyword["where"]
         > lazy(_a)[phoenix::bind(&KindsFiltersParser::parsedFilter, this, phoenix::ref(currentKindName), _1)]);
 
-    lastKind = raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
+    lastKind = raw[keyword[kinds[_a = _1]]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
         [phoenix::bind(&KindsFiltersParser::parsedFilter, this, phoenix::ref(currentKindName),
             phoenix::construct<Db::SpecialExpression>(Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE,
                                                       phoenix::ref(currentKindName)))];
 
-    keywordAll = raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
+    keywordAll = raw[keyword[kinds[_a = _1]]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
         [phoenix::bind(&KindsFiltersParser::allObjects, this, phoenix::ref(currentKindName))];
 
     phoenix::function<KindFiltersErrorHandler<Iterator> > kindFiltersErrorHandler = KindFiltersErrorHandler<Iterator>();

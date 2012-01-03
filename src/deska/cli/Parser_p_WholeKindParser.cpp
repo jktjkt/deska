@@ -45,7 +45,7 @@ WholeKindParser<Iterator>::WholeKindParser(const Db::Identifier &kindName,
 
     start = (((*attributesParser) >> -(*kindsParser))
         | ((*kindsParser)[phoenix::bind(&WholeKindParser::parsedSingleKind, this)])
-        | (qi::lit("end")[phoenix::bind(&WholeKindParser::parsedEnd, this)]));
+        | (keyword["end"][phoenix::bind(&WholeKindParser::parsedEnd, this)]));
 }
 
 

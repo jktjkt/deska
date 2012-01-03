@@ -52,9 +52,9 @@ AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier 
     namespace phoenix = boost::phoenix;
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    start = (qi::lit("no") > dispatch);
+    start = (keyword["no"] > dispatch);
 
-    dispatch = raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > lazy(_a)
+    dispatch = raw[keyword[attributes[_a = _1]]][rangeToString(_1, phoenix::ref(currentAttributeName))] > lazy(_a)
         [phoenix::bind(&AttributeRemovalsParser::parsedAttributeRemoval, this,
             phoenix::ref(currentAttributeName))];
 

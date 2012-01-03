@@ -23,7 +23,7 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p_AttributesSettingParser.h"
-#include <iostream>
+
 namespace Deska
 {
 namespace Cli
@@ -60,7 +60,7 @@ AttributesSettingParser<Iterator>::AttributesSettingParser(const Db::Identifier 
 
     // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
     // attribute being parsed.
-    dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))]
+    dispatch = ((raw[keyword[attributes[_a = _1]]][rangeToString(_1, phoenix::ref(currentAttributeName))]
         > lazy(_a)[phoenix::bind(&AttributesSettingParser::parsedAttribute, this,
             phoenix::ref(currentAttributeName), _1)]));
 

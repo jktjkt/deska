@@ -30,6 +30,7 @@
 #include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 
+#include "ParserKeyword.h"
 #include "deska/db/Objects.h"
 #include "RangeToString.h"
 #include "Parser.h"
