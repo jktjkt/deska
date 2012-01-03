@@ -61,6 +61,29 @@ def doStuff(r):
     rev5 = r.c(commitChangeset("."))
     r.assertEqual(r.c(dataDifference(rev4, rev5)), expectedDiff)
 
+    # Check what happens when setting attributes which belong to a just-deleted host
+    # Set up the data
+    r.c(startChangeset())
+    r.c(createObject("host", "h1"))
+    r.c(createObject("interface", "h1->i1"))
+    rev6 = r.c(commitChangeset("added host and interface"))
+
+    # Check how it works for a host
+    changeset = r.c(startChangeset())
+    r.cvoid(deleteObject("host", "h1"))
+    r.cvoid(setAttribute("host", "h1", "note_host", "pwn"))
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)),
+                  [{'command': 'deleteObject', 'kindName': 'host', 'objectName': 'h1'}])
+    r.cvoid(abortCurrentChangeset())
+
+    # See how the embedded objects behave
+    changeset = r.c(startChangeset())
+    r.cvoid(deleteObject("interface", "h1->i1"))
+    r.cvoid(setAttribute("interface", "h1->i1", "note", "pwn"))
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)),
+                  [{'command': 'deleteObject', 'kindName': 'interface', 'objectName': 'h1->i1'}])
+    r.cvoid(abortCurrentChangeset())
+
 def doStuff_embed(r):
     hostNames = set(["host1"])
     presentHosts = set(r.c(kindInstances("host")))
