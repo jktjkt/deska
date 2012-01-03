@@ -17,11 +17,13 @@ if len(sys.argv) != 3:
     sys.exit(1)
 
 if sys.argv[2] == "on":
-    mode = "powerOn"
+    mode = "on"
 elif sys.argv[2] == "off":
-    mode = "powerOff"
+    mode = "off"
+elif sys.argv[2] == "status":
+    mode = "status"
 else:
-    print "Usage: %s [hostname] [on|off]" % sys.argv[0]
+    print "Usage: %s [hostname] [on|off|status]" % sys.argv[0]
     sys.exit(1)
 
 hostname = sys.argv[1].split(".")[0]
@@ -33,12 +35,15 @@ if not hw_conf.has_key(hostname):
 hwmodel = hw_conf[hostname]
 # FIXME: add these commands
 if hwmodel == "SGI-Altix-XE310" or hwmodel == "SGI-Altix-XE340":
-    args = ["ipmitool", "-I", "lanplus"]
+    args = ["ipmitool", "-I", "lanplus", "-H", "%sb" % hostname, "-U", "admin",
+           "-P", "password1", "power", mode]
 elif hwmodel == "IBM-iDataPlex-dx340":
-    args = None
-elif hwmodel.startswith("IBM-iDataPlex-dx360-M2") or
+    args = ["ipmitool", "-I", "lanplus", "-H", "%sb" % hostname, "-U", "USERID",
+           "-P", "password2", "power", mode]
+elif hwmodel.startswith("IBM-iDataPlex-dx360-M2") or \
         hwmodel.startswith("IBM-iDataPlex-dx360-M3"):
-    args = ["ipmitool", "FIXME"]
+    args = ["ipmitool", "-I", "lanplus", "-H", "%sb" % hostname, "-U", "USERID",
+           "-P", "password3", "power", mode]
 else:
     args = None
 
