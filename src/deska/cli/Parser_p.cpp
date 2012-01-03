@@ -1159,8 +1159,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
                     possibilities.push_back(line + it->name);
                 }
             }
-            for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::const_iterator itm =
-                contains[contextStack.back().kind].begin(); itm != contains[contextStack.back().kind].end(); ++itm) {
+            std::vector<std::pair<Db::Identifier, Db::Identifier> > containedRecursively =
+                parserKindsContainedRecursively(contextStack.back().kind);
+            for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::const_iterator itm = containedRecursively.begin();
+                itm != containedRecursively.end(); ++itm) {
                 std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(itm->second);
                 someAttrs = someAttrs || !attributes.empty();
                 for (std::vector<Db::KindAttributeDataType>::const_iterator it =
