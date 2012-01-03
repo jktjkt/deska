@@ -1534,14 +1534,14 @@ template <typename Iterator>
 std::vector<std::pair<Db::Identifier, Db::Identifier> > ParserImpl<Iterator>::parserKindsContainedRecursively(const Db::Identifier &kindName)
 {
     typedef std::vector<std::pair<Db::Identifier, Db::Identifier> > Vect;
-    Vect containedRecursivelyTotal = parserKindsContains(kindName);
+    Vect res = parserKindsContains(kindName);
 
-    for (size_t i = 0; i < containedRecursivelyTotal.size(); ++i) {
-        Vect containedRecursively = parserKindsContainedRecursively(containedRecursivelyTotal[i].second);
-        containedRecursivelyTotal.insert(containedRecursivelyTotal.end(), containedRecursively.begin(), containedRecursively.end());
+    for (size_t i = 0; i < res.size(); ++i) {
+        Vect another = parserKindsContainedRecursively(res[i].second);
+        res.insert(res.end(), another.begin(), another.end());
     }
 
-    return containedRecursivelyTotal;
+    return res;
 }
 
 
