@@ -120,7 +120,21 @@ int main(int argc, char **argv)
         }
 
         // Be sure to create the directory for the history file
-        boost::filesystem::create_directories(boost::filesystem::path(config.getVar<std::string>(Deska::Cli::CLI_HistoryFilename)).directory_string());
+        std::string historyPath = config.getVar<std::string>(Deska::Cli::CLI_HistoryFilename);
+        std::string historyDir = boost::filesystem::path(historyPath).parent_path().directory_string();
+        if (historyDir != historyPath) {
+            // ...but only if it looks like a path. I've seen the boost libraries treat file names as directories, which is
+            // not exactly nice.
+            try {
+                boost::filesystem::create_directories(historyDir);
+            } catch (boost::filesystem::filesystem_error &e) {
+                std::cerr << "deska-cli: cannot create directory " << historyDir << " for readline history" << std::endl;
+                // but don't exit, this is a relatively harmless error
+            }
+        } else {
+            // Looks like the user was clueless enough not to specify any directory. Let's just ignore that (or boost::filesystem
+            // would happily create directories with the same name as we wanted to use...)
+        }
 
         Deska::Db::Connection conn(config.getVar<std::vector<std::string> >(Deska::Cli::DBConnection_Server));
         Deska::Cli::Parser parser(&conn);
