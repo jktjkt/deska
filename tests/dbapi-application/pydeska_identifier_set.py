@@ -19,8 +19,7 @@ def imperative(r):
 
     # set to a single-value list through an absolute name
     r.c(startChangeset())
-    # FIXME: Fails, Redmine #435
-    #r.cvoid(setAttribute("host", "x0", "service", None))
+    r.cvoid(setAttribute("host", "x0", "service", None))
     r.cvoid(setAttribute("host", "x0", "service", ["www"]))
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x0")["service"], ["www"])
     r.c(commitChangeset("set host x0 service www"))
