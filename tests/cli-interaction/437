@@ -1,0 +1,12 @@
+w start
+r Changeset tmp1 started.
+w create host h1
+w create host h2
+w create hardware h1
+w create virtual_hardware h2
+w all host
+# FIXME: fails, Redmine #437
+#w vram 4
+# FIXME: what shall it report?
+#<dump>
+#</dump>
