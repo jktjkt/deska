@@ -45,13 +45,19 @@
 \begin{frame}[fragile]
 \frametitle{Problém: duplicitní informace}
 \begin{itemize}
+    \item 350 serverů, 3000~CPU, 2~PB HDD, $n\times$10~Gb konektivita
+        \begin{itemize}
+            \item spolupráce s~CERN
+            \item analýza dat z urychlovače LHC
+            \item jedno z~nejrozsáhlejších výpočetních center v~ČR
+        \end{itemize}
     \item Informace o každém serveru / službě rozprostřena po celé infrastruktuře
         \begin{itemize}
             \item HW DB
             \item síťové přepínače
             \item DHCP
             \item DNS
-            \item specifikace rolí v Cfengine
+            \item specifikace rolí v~Cfengine
             \item Torque a CPU multiplikátory
             \item MRTG \& RRD grafování
             \item Nagios
@@ -72,10 +78,10 @@
         \item Jedno centrální místo jako autoritativní zdroj informací
         \item Provádění změn:
             \begin{enumerate}
-                \item Změna dat v DB
+                \item Změna dat v~DB
                 \item Vygenerování výstupu
                 \item Kontrola změn
-                \item Uložení k distribuci
+                \item Uložení k~distribuci
                 \item Nasazení do praxe
             \end{enumerate}
         \item Neschválené změny neovlivňují další uživatele ani stav produkčních systémů
@@ -137,7 +143,7 @@
                     \item Určuje povolené atributy a jejich datové typy
                     \item {\tt host}, {\tt hardware}, {\tt vendor},\ldots
                 \end{itemize}
-            \item Objekt $\rightarrow$ řádka v tabulce
+            \item Objekt $\rightarrow$ řádka v~tabulce
                 \begin{itemize}
                     \item ({\tt wn123}, {\tt www01}, {\tt wn123->eth0},\ldots)
                 \end{itemize}
@@ -169,7 +175,7 @@
                 \end{itemize}
             \item Objektová {\bf kompozice}
                 \begin{itemize}
-                    \item Opětovné využití subkomponent -- {\tt server} i {\tt switch} jsou v {\tt rack}u
+                    \item Opětovné využití subkomponent -- {\tt server} i {\tt switch} jsou v~{\tt rack}u
                 \end{itemize}
             \item {\bf Vnořování} objektů
                 \begin{itemize}
@@ -178,7 +184,7 @@
                 \end{itemize}
             \item {\bf Odkazování}
                 \begin{itemize}
-                    \item Odkaz na patřičný {\tt warranty\_contract} z každého {\tt hardware}
+                    \item Odkaz na patřičný {\tt warranty\_contract} z~každého {\tt hardware}
                 \end{itemize}
             \item {\bf Tagování}
                 \begin{itemize}
@@ -206,14 +212,14 @@
             \end{itemize}
         \item Server:
             \begin{itemize}
-                \item PostgreSQL 9.0
+                \item PostgreSQL~9.0
                 \item Pl/PgSQL, PgPython
                 \item generátory kódu
             \end{itemize}
         \item Výstupní generátory:
             \begin{itemize}
                 \item Python
-                \item nativní přístup k DB objektům
+                \item nativní přístup k~DB objektům
                 \item Git
             \end{itemize}
     \end{itemize}
@@ -232,7 +238,7 @@
 \begin{itemize}
     \item Zpřístupnění obsahu databáze přes nativní objekty
         \begin{itemize}
-            \item Vytvoření hierarchie tříd za běhu
+            \item Vytvoření hierarchie tříd za~běhu
             \item Introspekce přes oficiální komunikační protokol
             \item Čistě automatický proces
         \end{itemize}
@@ -257,7 +263,7 @@ for host in deska.host[(deska.host.color == "red") &
     \item PostgreSQL: nedostatečná chybová diagnostika u selhávajících integritních omezení
         \begin{itemize}
             \item náš patch zařazen do PostgreSQL 9.2
-            \item nabídka zaměstnání v evropské společnosti
+            \item nabídka zaměstnání v~evropské společnosti
         \end{itemize}
     \item Boost.Process: špatné ošetření návratových hodnot syscallů {\tt read(2)}, {\tt write(2)}
         \begin{itemize}
@@ -276,10 +282,28 @@ for host in deska.host[(deska.host.color == "red") &
         \begin{itemize}
             \item workaround
         \end{itemize}
-    \item CMake/CDash: integrace s Redmine
+    \item CMake/CDash: integrace s~Redmine
         \begin{itemize}
             \item patch
         \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Nasazení na FZÚ}
+\begin{itemize}
+    \item Deska nasazena v pilotním provozu
+        \item Generování reálných výstupů pro produkční služby
+        \begin{itemize}
+            \item Nagios
+            \item Munin
+            \item cfengine
+            \item Bind (DNS)
+            \item DHCP
+            \item Ethernetové přepínače
+            \item Ganglia
+        \end{itemize}
+    \item Vizualizace serverovny (QML)
 \end{itemize}
 \end{frame}
 
@@ -287,8 +311,19 @@ for host in deska.host[(deska.host.color == "red") &
 \begin{frame}[fragile]
 \frametitle{Shrnutí}
 \begin{itemize}
-    \item FIXME
-    \item \ldots
+    \item Generická databáze
+        \begin{itemize}
+            \item Práce nad uživatelským schématem
+            \item Verzování
+        \end{itemize}
+    \item Splňuje podmínky k produkčnímu nasazení, ověřeno v~pilotním provozu
+    \item Řeší reálné požadavky uživatelů
+    \item Patche přijaty open-source projekty
+        \begin{itemize}
+            \item Nabídka zaměstnání
+        \end{itemize}
+    \item Automatizované testy na mnoha úrovních
+    \item 750+ odpracovaných hodin za~jednoho člena týmu
 \end{itemize}
 \end{frame}
 
@@ -296,7 +331,7 @@ for host in deska.host[(deska.host.color == "red") &
 \begin{frame}[fragile]
 \frametitle{Dotazy}
 \begin{center}
-    Děkujeme za pozornost!
+    Děkujeme za pozornost
 \end{center}
 \end{frame}
 
