@@ -67,6 +67,18 @@ macro(deska_cli_test fname)
         run ${CMAKE_CURRENT_BINARY_DIR}/test_cli_${fname})
 endmacro(deska_cli_test)
 
+macro(deska_cli_int_test fname)
+    parse_arguments(ARG_TEST "DBSCHEME" "" ${ARGN})
+    if(ARG_TEST_DBSCHEME)
+        set(test_cli_int_extraopts ${test_cli_int_extraopts} "--dbscheme" ${ARG_TEST_DBSCHEME})
+    else()
+        set(test_cli_int_extraopts)
+    endif()
+    add_test(test_cli_int_${fname}
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh ${test_cli_int_extraopts}
+        cli-int ${fname})
+endmacro(deska_cli_int_test)
+
 # Copy files from source directory to destination directory, substituting any
 # variables.  Create destination directory if it does not exist.
 macro(deska_copy_files srcDir destDir)
@@ -183,6 +195,9 @@ if(RUN_SQL_TESTS)
 
     # Tests for generating the config files
     deska_dbapi_test_with_git(config_generators)
+
+    # Tests for the CLI interaction
+    deska_cli_int_test(sample)
 
     deska_copy_files( ${CMAKE_CURRENT_SOURCE_DIR}/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql )
     message(STATUS "Writing out test configuration")

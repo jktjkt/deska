@@ -118,6 +118,14 @@ case "${TESTMODE}" in
         ${TESTCASE}
         TEST_RESULT=$?
         ;;
+    cli-int)
+        export DESKA_USER
+        export DESKA_DB
+        export DESKA_TESTCASE=$TESTCASE
+        python ${DESKA_SOURCES}/tests/cli-interaction.py
+        TEST_RESULT=$?
+        ;;
+
     *)
         die "Unknown test"
 esac

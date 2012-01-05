@@ -1,0 +1,15 @@
+# This is a comment.
+# Lines that shall be sent to the CLI start with "w ", those that shall be read
+# from it start with "r ".
+# Empty lines are ignored.
+# <dump>
+# contents of the DB, as reported by the "dump" command, goes here
+# </dump>
+
+w start
+r Changeset tmp1 started.
+w create vendor foo
+<dump>
+vendor foo
+end
+</dump>
