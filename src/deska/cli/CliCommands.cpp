@@ -1109,11 +1109,15 @@ bool Execute::operator()(const std::string &params)
         return false;
     }
    
+
+    bool shallReadFromStdin = (params == "-");
+
     std::ifstream ifs(params.c_str());
-    if (!ifs) {
+    if (!shallReadFromStdin && !ifs) {
         ui->io->reportError("Error while opening commands file \"" + params + "\".");
         return false;
     }
+    std::istream &istr = shallReadFromStdin ? dynamic_cast<std::istream&>(std::cin) : dynamic_cast<std::istream&>(ifs);
     
     ui->nonInteractiveMode = true;
     std::string line;
@@ -1121,7 +1125,7 @@ bool Execute::operator()(const std::string &params)
     unsigned int lineNumber = 0;
     ui->parsingFailed = false;
     bool executingError = false;
-    while (!getline(ifs, line).eof() && !ui->exitLoop) {
+    while (!getline(istr, line).eof() && !ui->exitLoop) {
         ++lineNumber;
         if (line.empty() || line[0] == '#')
             continue;
@@ -1182,7 +1186,9 @@ bool Execute::operator()(const std::string &params)
     } else {
         ui->io->printMessage("All commands successfully executed.");
     }
-    ifs.close();
+    if (!shallReadFromStdin) {
+        ifs.close();
+    }
     ui->m_parser->clearContextStack();
     return !(ui->parsingFailed || executingError);
 }
