@@ -62,11 +62,6 @@ int main(int argc, char **argv)
         }
     }
 
-    if (!std::ifstream(configFile.c_str())) {
-        std::cerr << "deska-cli: Error: configuration file " << configFile << " not found" << std::endl;
-        return 1;
-    }
-
     try {
         Deska::Cli::CliConfig config(configFile, argc, argv);
 
@@ -117,6 +112,11 @@ int main(int argc, char **argv)
                       << "Please report all bugs to: deska@lists.flaska.net" << std::endl
                       << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
             return 0;
+        }
+
+        if (!std::ifstream(configFile.c_str())) {
+            std::cerr << "deska-cli: Error: configuration file " << configFile << " not found" << std::endl;
+            return 1;
         }
 
         // Be sure to create the directory for the history file
