@@ -122,6 +122,7 @@ case "${TESTMODE}" in
         export DESKA_USER
         export DESKA_DB
         export DESKA_TESTCASE=$TESTCASE
+        export DESKA_CONFIG_FILE=/dev/null
         python ${DESKA_SOURCES}/tests/cli-interaction.py
         TEST_RESULT=$?
         ;;
