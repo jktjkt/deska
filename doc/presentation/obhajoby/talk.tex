@@ -37,6 +37,7 @@
         \begin{itemize}
             \item spolupráce s~CERN
             \item analýza dat z urychlovače LHC
+            \item experiment D0, Fermilab, USA
             \item jedno z~nejrozsáhlejších výpočetních center v~ČR
         \end{itemize}
 \end{itemize}
@@ -98,6 +99,7 @@
     \item WWW přístup není požadován
     \item Skriptování
     \item Verzování, audit logging
+    \item Izolované změny --- sandbox
     \item Preference FLOSS, Linux
     \item Integrace s existující infrastrukturou
     \item Nevynalézat znovu kolo
@@ -131,14 +133,14 @@
 \begin{frame}[fragile]
 \frametitle{Databázová struktura: objekty}
 \begin{itemize}
-    \item Každá položka reprezentovaná {\bf objektem} patřičného {\bf typu} (``kind'')
+    \item Každá položka reprezentovaná {\bf objektem} patřičného typu (``kind'')
         \begin{itemize}
-            \item Kind $\rightarrow$ databázová tabulka
+            \item {\bf Kind} $\rightarrow$ databázová tabulka
                 \begin{itemize}
                     \item Určuje povolené atributy a jejich datové typy
                     \item {\tt host}, {\tt hardware}, {\tt vendor},\ldots
                 \end{itemize}
-            \item Objekt $\rightarrow$ řádka v~tabulce
+            \item {\bf Objekt} $\rightarrow$ řádka v~tabulce
                 \begin{itemize}
                     \item ({\tt wn123}, {\tt www01}, {\tt wn123->eth0},\ldots)
                 \end{itemize}
@@ -318,11 +320,11 @@ for host in deska.host[(deska.host.color == "red") &
             \item Nabídka zaměstnání
         \end{itemize}
     \item Automatizované testy na mnoha úrovních
-    \item 750+ odpracovaných hodin za~jednoho člena týmu
     \item Vystoupení na třech zahraničních konferencích (Dubna, Taipei, Vancouver)
         \begin{itemize}
             \item dvě publikace, jedna recenzovaná v~Journal of Physics
         \end{itemize}
+    \item 750+ odpracovaných hodin za~jednoho člena týmu
 \end{itemize}
 \end{frame}
 
