@@ -1,0 +1,303 @@
+% vim: spelllang=cs spell textwidth=120
+\documentclass{beamer}
+\definecolor{links}{HTML}{2A1B81}
+\usepackage[utf8]{inputenc}
+%\usepackage{ucs}
+%\usepackage[utf8x]{inputenc}
+\usepackage{minted}
+\usepackage{hyperref}
+\usepackage[overlay]{textpos}
+\hypersetup{colorlinks,urlcolor=links}
+\setbeamertemplate{navigation symbols}{}
+
+\begin{document}
+
+\title{Deska: Tool for Central Administration of a Grid Site}
+\author{Jan Kundrát \\ \href{mailto:kundratj@fzu.cz}{\nolinkurl{kundratj@fzu.cz}}
+\vspace{5mm}
+\\ Lukáš Kerpl \\ Martina Krejčová \\ Tomáš Hubík}
+\institute{Institute of Physics of the AS CR, v.v.i.}
+\begin{frame}
+\begin{columns}
+\begin{column}{.4\textwidth}
+\includegraphics[width=4cm]{../HEPIX-2011/logo-FZU-male.pdf} \\
+\includegraphics[width=4cm]{../HEPIX-2011/deska_logo.pdf}
+\end{column}
+\begin{column}{.6\textwidth}
+\maketitle
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Úvod}
+\begin{itemize}
+    \item Popis problému
+    \item Navrhované řešení
+    \item Databázové objekty
+    \item Technická implementace
+    \item Problémy
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Problém: duplicitní informace}
+\begin{itemize}
+    \item Informace o každém serveru / službě rozprostřena po celé infrastruktuře
+        \begin{itemize}
+            \item HW DB
+            \item síťové přepínače
+            \item DHCP
+            \item DNS
+            \item specifikace rolí v Cfengine
+            \item Torque a CPU multiplikátory
+            \item MRTG \& RRD grafování
+            \item Nagios
+            \item Ganglia
+            \item Munin
+            \item \ldots
+        \end{itemize}
+    \item Komplikované změny, časté omyly, zdroj komplikací
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Navrhované řešení}
+\begin{columns}
+\begin{column}{.45\paperwidth}
+    \begin{itemize}
+        \item Jedno centrální místo jako autoritativní zdroj informací
+        \item Provádění změn:
+            \begin{enumerate}
+                \item Změna dat v DB
+                \item Vygenerování výstupu
+                \item Kontrola změn
+                \item Uložení k distribuci
+                \item Nasazení do praxe
+            \end{enumerate}
+        \item Neschválené změny neovlivňují další uživatele ani stav produkčních systémů
+    \end{itemize}
+\end{column}
+\begin{column}{.55\paperwidth}
+\begin{textblock}{50}(0,-7.2)
+\includegraphics[height=90mm, trim=28mm 53mm 30mm 28mm, clip=true]{../../technical/img-deska-workflow.pdf}
+\end{textblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Požadavky zadavatele}
+\begin{itemize}
+    \item CLI rozhraní
+    \item WWW přístup není požadován
+    \item Skriptování
+    \item Verzování, audit logging
+    \item Preference FLOSS, Linux
+    \item Integrace s existující infrastrukturou
+    \item Nevynalézat znovu kolo
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Struktura databáze}
+\begin{itemize}
+    \item Dynamické požadavky, každé centrum trochu jiné
+        \begin{itemize}
+            \item Generická databáze
+            \item Schéma dotváří správce aplikace
+        \end{itemize}
+    \item Implementace
+        \begin{itemize}
+            \item SQL DDL jako definice schématu
+            \item Generátory kódu pro uložené procedury
+        \end{itemize}
+    \item Zapouzdření
+        \begin{itemize}
+            \item Klientské aplikace {\em nezávislé} na schématu
+            \item Komunikační protokol schopný popsat uživatelské schéma
+            \item Introspekce
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Databázová struktura: objekty}
+\begin{itemize}
+    \item Každá položka reprezentovaná {\bf objektem} patřičného {\bf typu} (``kind'')
+        \begin{itemize}
+            \item Kind $\rightarrow$ databázová tabulka
+                \begin{itemize}
+                    \item Určuje povolené atributy a jejich datové typy
+                    \item {\tt host}, {\tt hardware}, {\tt vendor},\ldots
+                \end{itemize}
+            \item Objekt $\rightarrow$ řádka v tabulce
+                \begin{itemize}
+                    \item ({\tt wn123}, {\tt www01}, {\tt wn123->eth0},\ldots)
+                \end{itemize}
+        \end{itemize}
+        \begin{minted}{text}
+            host wn123
+                hardware sgi-xe310
+                rack R06
+                position 10
+            end
+        \end{minted}
+    \item Schéma je uživatelsky definováno
+        \begin{itemize}
+            \item Deska server neobsahuje nic specifického pro datacentrum
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Databázová struktura: relace}
+\begin{itemize}
+    \item Relace určují pravidla pro vztahy mezi jednotlivými tabulkami
+    \item Přidání konkrétního {\em významu} cizím klíčům
+        \begin{itemize}
+            \item {\bf Template} určuje výchozí hodnotu atributů
+                \begin{itemize}
+                    \item Dodávka mnoha serverů najednou
+                \end{itemize}
+            \item Objektová {\bf kompozice}
+                \begin{itemize}
+                    \item Opětovné využití subkomponent -- {\tt server} i {\tt switch} jsou v {\tt rack}u
+                \end{itemize}
+            \item {\bf Vnořování} objektů
+                \begin{itemize}
+                    \item Umožňuje vytvářet hierarchické stromy objektů modelující realitu
+                    \item Síťová rozhraní: {\tt srv123->eth0}
+                \end{itemize}
+            \item {\bf Odkazování}
+                \begin{itemize}
+                    \item Odkaz na patřičný {\tt warranty\_contract} z každého {\tt hardware}
+                \end{itemize}
+            \item {\bf Tagování}
+                \begin{itemize}
+                    \item Přiřazení logických rolí jednotlivým serverům
+                \end{itemize}
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Technická implementace}
+\begin{columns}
+\begin{column}{.45\paperwidth}
+    \begin{itemize}
+        \item Klient-server aplikace
+            \begin{itemize}
+                \item 100\% oddělení
+            \end{itemize}
+        \item Klient:
+            \begin{itemize}
+                \item CLI
+                \item C++, Boost, Spirit
+                \item komunikace přes JSON, SSH
+            \end{itemize}
+        \item Server:
+            \begin{itemize}
+                \item PostgreSQL 9.0
+                \item Pl/PgSQL, PgPython
+                \item generátory kódu
+            \end{itemize}
+        \item Výstupní generátory:
+            \begin{itemize}
+                \item Python
+                \item nativní přístup k DB objektům
+                \item Git
+            \end{itemize}
+    \end{itemize}
+\end{column}
+\begin{column}{.55\paperwidth}
+\begin{textblock}{50}(0,-7.5)
+\includegraphics[width=65mm, trim=28mm 64mm 28mm 27mm, clip=true]{../../technical/img-deska-components.pdf}
+\end{textblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Skriptování v Pythonu}
+\begin{itemize}
+    \item Zpřístupnění obsahu databáze přes nativní objekty
+        \begin{itemize}
+            \item Vytvoření hierarchie tříd za běhu
+            \item Introspekce přes oficiální komunikační protokol
+            \item Čistě automatický proces
+        \end{itemize}
+    \item Filtrování probíhá na straně serveru
+    \item Syntaxe podobná standardnímu ORMu SQL Alchemy
+\end{itemize}
+\begin{minted}{python}
+import deska
+# introspekce
+deska.init()
+
+for host in deska.host[(deska.host.color == "red") &
+                       deska.service.contains("www")]:
+    print "%s\n" % host
+\end{minted}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Problémy v použitých komponentách}
+\begin{itemize}
+    \item PostgreSQL: nedostatečná chybová diagnostika u selhávajících integritních omezení
+        \begin{itemize}
+            \item náš patch zařazen do PostgreSQL 9.2
+            \item nabídka zaměstnání v evropské společnosti
+        \end{itemize}
+    \item Boost.Process: špatné ošetření návratových hodnot syscallů {\tt read(2)}, {\tt write(2)}
+        \begin{itemize}
+            \item neoficiální knihovna, není součástí Boostu
+            \item opraveno lokálně, další rozšíření funkčnosti
+        \end{itemize}
+    \item JSON-Spirit: serializace floating-point čísel neodpovídá specifikaci JSONu
+        \begin{itemize}
+            \item patch
+        \end{itemize}
+    \item PsycoPg2: porušení zpětné kompatibility mezi verzemi 2.4.2 a 2.4.1
+        \begin{itemize}
+            \item workaround, podporujeme všechny rozšířené verze
+        \end{itemize}
+    \item PgPython: nedostatečné rozlišování prázdných polí a prázdných řetězců, nedostatečná kontrola chyb
+        \begin{itemize}
+            \item workaround
+        \end{itemize}
+    \item CMake/CDash: integrace s Redmine
+        \begin{itemize}
+            \item patch
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Shrnutí}
+\begin{itemize}
+    \item FIXME
+    \item \ldots
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Dotazy}
+\begin{center}
+    Děkujeme za pozornost!
+\end{center}
+\end{frame}
+
+\end{document}
