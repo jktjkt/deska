@@ -364,7 +364,7 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
             if (connectedObjects.empty())
                 connectedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), connectedObjects);
-        } catch (std::logic_error &e) {
+        } catch (ContextStackConversionError &e) {
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
         }
     }
@@ -392,7 +392,7 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
             if (connectedObjects.empty())
                 connectedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), connectedObjects);
-        } catch (std::logic_error &e) {
+        } catch (ContextStackConversionError &e) {
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
         }
     }
