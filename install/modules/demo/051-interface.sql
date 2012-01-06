@@ -13,17 +13,14 @@ CREATE TABLE interface (
 	-- this column is required in all plugins
 	name identifier NOT NULL,
 	-- host
-	-- TODO better use uid
 	host bigint
 		CONSTRAINT rembed_interface_fk_host REFERENCES host(uid) DEFERRABLE,
 	-- IP
-	-- TODO unique constraint
 	ip4 ipv4,
 	network bigint
 		CONSTRAINT rrefer_interface_fk_network REFERENCES network(uid) DEFERRABLE,
 	ip6 ipv6,
 	-- MAC
-	-- TODO unique constraint
 	mac macaddr,
 	note text,
 	template_interface bigint,

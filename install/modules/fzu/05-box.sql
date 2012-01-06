@@ -68,7 +68,7 @@ $$
 DECLARE pos_regexp text;
 BEGIN
 	if NEW.position IS NULL THEN
-		-- FIXME: Unfortunately, this checking won't work at all for the multi-unit
+		-- Unfortunately, this checking won't work at all for the multi-unit
 		-- boxes.  The regular expression can check that a machine fits in a given
 		-- slot, but the problems start to pop out when a machine occupies more than
 		-- one slot.

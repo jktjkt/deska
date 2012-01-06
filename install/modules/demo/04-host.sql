@@ -16,8 +16,6 @@ CREATE TABLE host (
 	name identifier
 		CONSTRAINT host_name_unique UNIQUE NOT NULL,
 	-- hardwere where it runs
-	-- TODO-virtual host
-	-- TODO - better use uid
 	hardware bigint
 		CONSTRAINT rconta_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 	virtual_hardware bigint

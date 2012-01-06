@@ -13,7 +13,6 @@ CREATE TABLE hardware (
 	-- this column is required in all plugins
 	name identifier
 		CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
-	-- TODO - better use uid
 	vendor bigint 
 		CONSTRAINT rrefer_hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
 	purchase date NOT NULL,
