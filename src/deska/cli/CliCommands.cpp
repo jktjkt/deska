@@ -567,7 +567,7 @@ Configdiff::~Configdiff()
 bool Configdiff::operator()(const std::string &params)
 {
     if (!ui->currentChangeset) {
-        ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff of configuration. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        ui->io->reportError("Error: You have to be connected to a changeset to perform diff of configuration. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
 
@@ -765,7 +765,7 @@ bool Batch::operator()(const std::string &params)
         return false;
     }
     if (!ui->currentChangeset) {
-        ui->io->reportError("Error: Wou have to be connected to a changeset to perform batched operations. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        ui->io->reportError("Error: You have to be connected to a changeset to perform batched operations. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
     std::ifstream ifs(params.c_str());
@@ -921,7 +921,7 @@ bool Restore::operator()(const std::string &params)
         return false;
     }
     if (ui->currentChangeset) {
-        ui->io->reportError("Error: Wou must not be connected to a changeset to perform restore. Use \"help\" for more info.");
+        ui->io->reportError("Error: You must not be connected to a changeset to perform restore. Use \"help\" for more info.");
         return false;
     }
 

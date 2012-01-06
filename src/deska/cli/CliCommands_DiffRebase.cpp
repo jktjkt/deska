@@ -1194,7 +1194,7 @@ bool Diff::operator()(const std::string &params)
 {
     if (params.empty()) {
         if (!ui->currentChangeset) {
-            ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+            ui->io->reportError("Error: You have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
             return false;
         }
         // Show diff with parent
@@ -1213,7 +1213,7 @@ bool Diff::operator()(const std::string &params)
     if (paramsList.size() == 1) {
         // Create patch to current changeset
         if (!ui->currentChangeset) {
-            ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+            ui->io->reportError("Error: You have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
             return false;
         }
         std::ofstream ofs(paramsList[0].c_str());
