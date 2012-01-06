@@ -5,8 +5,42 @@ w create host h2
 w create hardware h1
 w create virtual_hardware h2
 w all host
-# FIXME: fails, Redmine #437
-#w vram 4
-# FIXME: what shall it report?
-#<dump>
-#</dump>
+w vram 4
+<dump>
+hardware h1
+    no cpu_ht
+    no cpu_num
+    no hepspec
+    host h1
+    no note_hardware
+    no purchase
+    no ram
+    no template_hardware
+    no vendor
+    no warranty
+end
+host h1
+    hardware h1
+    no note_host
+    no service
+    no template_host
+    virtual_hardware h1
+end
+host h2
+    no hardware
+    no note_host
+    no service
+    no template_host
+    virtual_hardware h2
+end
+virtual_hardware h2
+    host h2
+    no vcpu_num
+    vram 4
+end
+virtual_hardware h1
+    host h1
+    no vcpu_num
+    vram 4
+end
+</dump>

@@ -103,12 +103,19 @@ bool UserInterface::applyCreateObject(const ContextStack &context,
             io->reportError("Sorry, object(s) you are attempting to create has been deleted in this changeset, and therefore cannot be created as a brand new instance.");
             return false;
         }
-        if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
-            m_dbInteraction->restoreDeletedObject(context);
-            if (!newItemFilter)
+        try {
+            Db::Identifier objName = contextStackToPath(context);
+            if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
+                ContextStack restoreCont;
+                restoreCont.push_back(ContextStackItem(kind, objName));
+                m_dbInteraction->restoreDeletedObject(restoreCont);
                 newItem = ContextStackItem(kind, object);
-            return true;
-        } else {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (ContextStackConversionError &e) {
+            io->reportError("Sorry, object(s) you are attempting to create has been deleted in this changeset, and therefore cannot be restored from filter.");
             return false;
         }
     } catch (Deska::Db::AlreadyExistsError &e) {
@@ -148,12 +155,19 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
             io->reportError("Sorry, object(s) you are attempting to create has been deleted in this changeset, and therefore cannot be created as a brand new instance.");
             return false;
         }
-        if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
-            m_dbInteraction->restoreDeletedObject(context);
-            if (!newItemFilter)
+        try {
+            Db::Identifier objName = contextStackToPath(context);
+            if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
+                ContextStack restoreCont;
+                restoreCont.push_back(ContextStackItem(kind, objName));
+                m_dbInteraction->restoreDeletedObject(restoreCont);
                 newItem = ContextStackItem(kind, object);
-            return true;
-        } else {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (ContextStackConversionError &e) {
+            io->reportError("Sorry, object(s) you are attempting to create has been deleted in this changeset, and therefore cannot be restored from filter.");
             return false;
         }
     }
@@ -167,8 +181,25 @@ bool UserInterface::applySetAttribute(const ContextStack &context, const Db::Ide
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
-        if (!m_dbInteraction->objectExists(adjustedContext))
-            m_dbInteraction->createObject(adjustedContext);
+        if (!m_dbInteraction->objectExists(adjustedContext)) {
+            try {
+                m_dbInteraction->createObject(adjustedContext, context.back().kind);
+            } catch (Deska::Db::ReCreateObjectError &e) {
+                try {
+                    Db::Identifier objName = contextStackToPath(context);
+                    if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind, context.back().name))) {
+                        ContextStack restoreCont;
+                        restoreCont.push_back(ContextStackItem(kind, objName));
+                        m_dbInteraction->restoreDeletedObject(restoreCont);
+                    } else {
+                        return false;
+                    }
+                } catch (ContextStackConversionError &e) {
+                    io->reportError("Sorry, object(s) you are attempting to create has been deleted in this changeset, and therefore cannot be restored when accessing contained objects from filter.");
+                    return false;
+                }
+            }
+        }
     }
     m_dbInteraction->setAttribute(adjustedContext, AttributeDefinition(attribute, value));
     return true;
@@ -182,8 +213,25 @@ bool UserInterface::applySetAttributeInsert(const ContextStack &context, const D
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
-        if (!m_dbInteraction->objectExists(adjustedContext))
-            m_dbInteraction->createObject(adjustedContext);
+        if (!m_dbInteraction->objectExists(adjustedContext)) {
+            try {
+                m_dbInteraction->createObject(adjustedContext, context.back().kind);
+            } catch (Deska::Db::ReCreateObjectError &e) {
+                try {
+                    Db::Identifier objName = contextStackToPath(context);
+                    if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind, context.back().name))) {
+                        ContextStack restoreCont;
+                        restoreCont.push_back(ContextStackItem(kind, objName));
+                        m_dbInteraction->restoreDeletedObject(restoreCont);
+                    } else {
+                        return false;
+                    }
+                } catch (ContextStackConversionError &e) {
+                    io->reportError("Sorry, object(s) you are attempting to create has been deleted in this changeset, and therefore cannot be restored when accessing contained objects from filter.");
+                    return false;
+                }
+            }
+        }
     }
     m_dbInteraction->setAttributeInsert(adjustedContext, attribute, value);
     return true;
@@ -336,7 +384,7 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
             autoCreate = io->confirmCreation(ObjectDefinition(kind,object));
         else
             autoCreate = io->confirmCreationConnection(ObjectDefinition(kind, object), connectedObjects);
-    } catch (std::logic_error &e) {
+    } catch (ContextStackConversionError &e) {
         autoCreate = io->confirmCreationConnection(ObjectDefinition(kind, object));
     }
     

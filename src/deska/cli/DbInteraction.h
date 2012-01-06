@@ -52,9 +52,10 @@ public:
     /** @short Creates new object.
     *
     *   @param context Path and object definition to create
+    *   @param oldKind Kind name specifying, that connected objects will be created
     *   @return ContextStackItem identifying really created object or set of objects
     */
-    ContextStackItem createObject(const ContextStack &context);
+    ContextStackItem createObject(const ContextStack &context, const Db::Identifier &oldKind = Db::Identifier());
     /** @short Restores deleted object.
     *
     *   @param context Path and object definition to restore

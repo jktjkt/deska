@@ -803,6 +803,9 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                                                     ascii::space);
                     break;
                 case PARSING_MODE_CREATE:
+                    parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]),
+                                                    ascii::space);
+                    break;
                 case PARSING_MODE_DELETE:
                 case PARSING_MODE_SHOW:
                 case PARSING_MODE_RENAME:
@@ -827,6 +830,8 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     if (!contextStack.back().filter) {
                         try {
                             m_parser->m_dbApi->objectData(contextStack.back().kind, contextStackToPath(contextStack));
+                        } catch (ContextStackConversionError &e) {
+                            // Nothing to do there
                         } catch (Db::NotFoundError &e) {
                             addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
                                                                contextStack.back().kind, contextStack.back().name,

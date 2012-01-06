@@ -3,8 +3,30 @@ r Changeset tmp1 started.
 w create host h1
 w create host h2
 w all host
-# FIXME: fails, Redmine #436
-#w vram 4
-# FIXME: what shall it report?
-#<dump>
-#</dump>
+w vram 4
+<dump>
+host h1
+    no hardware
+    no note_host
+    no service
+    no template_host
+    virtual_hardware h1
+end
+host h2
+    no hardware
+    no note_host
+    no service
+    no template_host
+    virtual_hardware h2
+end
+virtual_hardware h1
+    host h1
+    no vcpu_num
+    vram 4
+end
+virtual_hardware h2
+    host h2
+    no vcpu_num
+    vram 4
+end
+</dump>

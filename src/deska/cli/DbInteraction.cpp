@@ -68,10 +68,28 @@ DbInteraction::DbInteraction(Db::Api *api):
 
 
 
-ContextStackItem DbInteraction::createObject(const ContextStack &context)
+ContextStackItem DbInteraction::createObject(const ContextStack &context, const Db::Identifier &oldKind)
 {
     BOOST_ASSERT(!context.empty());
-    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    std::vector<ObjectDefinition> objects;
+    if (context.back().itemType != ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER) {
+        if (context.size() == 1) {
+            objects = expandContextStack(context);
+        } else {
+            objects = expandContextStack(ContextStack(context.begin(), context.end() - 1));
+            for (size_t i = 0; i < objects.size(); ++i) {
+            objects[i] = stepInContext(objects[i], ObjectDefinition(context.back().kind, objects.back().name));
+            }
+        }    
+    } else {
+        BOOST_ASSERT(!oldKind.empty());
+        ContextStack oldContext = context;
+        oldContext.back().kind = oldKind;
+        objects = expandContextStack(oldContext);
+        for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+            it->kind = context.back().kind;
+        }
+    }
 
     BOOST_ASSERT(!objects.empty());
 
@@ -96,10 +114,14 @@ ContextStackItem DbInteraction::createObject(const ContextStack &context)
     m_api->applyBatchedChanges(modifications);
 
     if (context.back().name.empty()) {
-        // The following command can fail when one tries to create embedded objects inside a filter.
-        throw MassCreatingEmbeddedError("Mass-creating of the nested objects is not supported, sorry.");
-        return ContextStackItem(context.back().kind, Db::Filter(
-        Db::SpecialExpression(Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE, context.back().kind)));
+        if (context.back().itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER) {
+            return ContextStackItem(context.back().kind, context.back().filter);
+        } else {
+            // The following command can fail when one tries to create embedded objects inside a filter.
+            throw MassCreatingEmbeddedError("Mass-creating of the nested objects is not supported, sorry.");
+            return ContextStackItem(context.back().kind, Db::Filter(
+            Db::SpecialExpression(Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE, context.back().kind)));
+        }
     } else {
         return ContextStackItem(context.back().kind, context.back().name);
     }
