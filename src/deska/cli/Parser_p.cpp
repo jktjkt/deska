@@ -1248,7 +1248,9 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                         path.begin() + contextStack.size(), path.end())));
                 }
             }
-            possibilities.push_back(line + "where");
+            // Mode create does not support filters
+            if (parsingMode != PARSING_MODE_CREATE)
+                possibilities.push_back(line + "where");
         }
     }
 
