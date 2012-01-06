@@ -1,0 +1,38 @@
+w start
+r Changeset tmp1 started.
+w create host h1
+w create host h2
+w all host
+w interface eth0
+<dump>
+host h1
+    no hardware
+    no note_host
+    no service
+    no template_host
+    no virtual_hardware
+    interface eth0
+        no ip4
+        no ip6
+        no mac
+        no network
+        no note
+        no template_interface
+    end
+end
+host h2
+    no hardware
+    no note_host
+    no service
+    no template_host
+    no virtual_hardware
+    interface eth0
+        no ip4
+        no ip6
+        no mac
+        no network
+        no note
+        no template_interface
+    end
+end
+</dump>

@@ -200,6 +200,8 @@ if(RUN_SQL_TESTS)
     deska_cli_int_test(sample)
     deska_cli_int_test(436)
     deska_cli_int_test(437)
+    deska_cli_int_test(create-nested)
+    deska_cli_int_test(filters-create)
 
     deska_copy_files( ${CMAKE_CURRENT_SOURCE_DIR}/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql )
     message(STATUS "Writing out test configuration")
