@@ -12,7 +12,6 @@ CREATE TABLE interface (
 	host bigint
 		CONSTRAINT rembed_interface_fk_host REFERENCES host(uid) DEFERRABLE,
 	-- IP
-	-- TODO unique constraint
 	ip4 ipv4,
 	network bigint
 		CONSTRAINT rrefer_interface_fk_network REFERENCES network(uid) DEFERRABLE,
@@ -109,6 +108,6 @@ END
 $$
 LANGUAGE plpgsql;
 -- check networks if network changes
---FIXME: uncomment after have valid data in fzu dump
+-- This can be enabled only when the FZU dump contains valid data
 --CREATE TRIGGER network_check_interface AFTER INSERT OR UPDATE ON network FOR EACH ROW
 --	EXECUTE PROCEDURE network_check();
