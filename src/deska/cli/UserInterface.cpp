@@ -104,6 +104,9 @@ bool UserInterface::applyCreateObject(const ContextStack &context,
             return false;
         }
         try {
+            // When we get exception ReCreateObjectError we are not able to recognize, which objects from the whole context
+            // stack caused this exception and so which should we restore. We know it only when the context stack matches
+            // only one object.
             Db::Identifier objName = contextStackToPath(context);
             if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
                 ContextStack restoreCont;
@@ -156,6 +159,9 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
             return false;
         }
         try {
+            // When we get exception ReCreateObjectError we are not able to recognize, which objects from the whole context
+            // stack caused this exception and so which should we restore. We know it only when the context stack matches
+            // only one object.
             Db::Identifier objName = contextStackToPath(context);
             if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
                 ContextStack restoreCont;
@@ -183,9 +189,14 @@ bool UserInterface::applySetAttribute(const ContextStack &context, const Db::Ide
         adjustedContext.back().kind = kind;
         if (!m_dbInteraction->objectExists(adjustedContext)) {
             try {
+                // When creating contained object we have to specify also parents kind name in order to obtain list of all
+                // parents for which are we going to create contained object.
                 m_dbInteraction->createObject(adjustedContext, context.back().kind);
             } catch (Deska::Db::ReCreateObjectError &e) {
                 try {
+                    // When we get exception ReCreateObjectError we are not able to recognize, which objects from the
+                    // whole context stack caused this exception and so which should we restore. We know it only when the
+                    //context stack matches only one object.
                     Db::Identifier objName = contextStackToPath(context);
                     if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind, context.back().name))) {
                         ContextStack restoreCont;
@@ -215,9 +226,14 @@ bool UserInterface::applySetAttributeInsert(const ContextStack &context, const D
         adjustedContext.back().kind = kind;
         if (!m_dbInteraction->objectExists(adjustedContext)) {
             try {
+                // When creating contained object we have to specify also parents kind name in order to obtain list of all
+                // parents for which are we going to create contained object.
                 m_dbInteraction->createObject(adjustedContext, context.back().kind);
             } catch (Deska::Db::ReCreateObjectError &e) {
                 try {
+                    // When we get exception ReCreateObjectError we are not able to recognize, which objects from the
+                    // whole context stack caused this exception and so which should we restore. We know it only when the
+                    //context stack matches only one object.
                     Db::Identifier objName = contextStackToPath(context);
                     if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind, context.back().name))) {
                         ContextStack restoreCont;
