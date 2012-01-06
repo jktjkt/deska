@@ -73,15 +73,13 @@ ContextStackItem DbInteraction::createObject(const ContextStack &context, const 
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects;
     if (context.back().itemType != ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER) {
-        if (context.size() == 1) {
-            objects = expandContextStack(context);
-        } else {
-            objects = expandContextStack(ContextStack(context.begin(), context.end() - 1));
-            for (size_t i = 0; i < objects.size(); ++i) {
-            objects[i] = stepInContext(objects[i], ObjectDefinition(context.back().kind, objects.back().name));
-            }
-        }    
+        // The last item in the context stack is a regular object definition.
+        objects = expandContextStack(context);
     } else {
+        // Last item in the context is a filter. This could happen only when creating some contained object through
+        // setting of some attribute. Parent kind is stored in variable oldKind. We create filter on this old kind
+        // and then change the kind for all objects as we want to create new object for all parents. Ok, not all as
+        // some of them could already exist, but they are going to be filtered later in this function.
         BOOST_ASSERT(!oldKind.empty());
         ContextStack oldContext = context;
         oldContext.back().kind = oldKind;
@@ -696,7 +694,12 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                         // If we matched some objects, push them in the vector.
                         for (std::vector<Db::Identifier>::iterator
                              iti = instances.begin(); iti != instances.end(); ++iti) {
-                            objects.push_back(ObjectDefinition(it->kind, *iti));
+                            ObjectDefinition objInst(it->kind, *iti);
+                            // Cache only when the expanded item in the stack is a filter as after using function 
+                            // stepInContext the object does not have to exist.
+                            if (stableView)
+                                objectExistsCache[objInst] = true;
+                            objects.push_back(objInst);
                         }
                     }
                 } else {
@@ -732,7 +735,12 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                         objects.clear();
                         for (std::vector<Db::Identifier>::iterator
                              iti = instances.begin(); iti != instances.end(); ++iti) {
-                            objects.push_back(ObjectDefinition(it->kind, *iti));
+                            ObjectDefinition objInst(it->kind, *iti);
+                            // Cache only when the expanded item in the stack is a filter as after using function 
+                            // stepInContext the object does not have to exist.
+                            if (stableView)
+                                objectExistsCache[objInst] = true;
+                            objects.push_back(objInst);
                         }
                     }
 
@@ -745,9 +753,6 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                 }
             }
         }
-        if (stableView)
-            for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it)
-                objectExistsCache[*it] = true;
     }
 
     return objects;
