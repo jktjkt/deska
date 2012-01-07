@@ -47,6 +47,7 @@ class Condition():
 		self.id = "${0}".format(condId)
 		self.metadata = False
 		self.idSet = False
+		self.checkDistinct = False
 		if "metadata" in data:
 			self.kind = "metadata"
 			self.metadata = True
@@ -106,9 +107,10 @@ class Condition():
 			fromTbl = generated.relFromTbl(relName)
 			fromCol = generated.relFromCol(relName)
 			toTbl = generated.relToTbl(relName)
-			if self.kind == fromTbl and self.col == fromCol:
+			if self.kind == fromTbl and self.col == fromCol and self.val is not None:
 				# update coldef for identifier references
 				self.id = "{0}_find_uid({1},$1)".format(toTbl,self.id)
+				self.checkDistinct = True
 
 	def operatorParse(self):
 		'''Work with operators'''
@@ -129,6 +131,10 @@ class Condition():
 		self.nullCompensation = ""
 		if self.op == '!=':
 			self.nullCompensation = " OR {0}.{1} IS NULL"
+			# this is while using find_uid
+			if self.checkDistinct:
+				'''If using function returning null, use IS DISTICT FROM operator'''
+				self.op = "IS DISTINCT FROM"
 
 
 		# propper work with nulls
@@ -136,7 +142,7 @@ class Condition():
 			self.null = True
 			if self.op == '=':
 				self.op = 'IS NULL'
-			elif self.op == '!=':
+			elif self.op == '!=' or self.op == "IS DISTINCT FROM":
 				self.op = 'IS NOT NULL'
 				self.nullCompensation = ""
 			else:
@@ -200,7 +206,9 @@ class AdditionalEmbedCondition(Condition):
 		# because this is column refers to another table
 
 		#version parametr, $1 every time
-		self.id = "{0}_find_uid({1},$1)".format(self.col,self.id)
+		if self.val is not None:
+			self.id = "{0}_find_uid({1},$1)".format(self.col,self.id)
+			self.checkDistinct = True
 
 class Filter():
 	'''Class for handling filters'''
