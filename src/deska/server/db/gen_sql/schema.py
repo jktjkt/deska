@@ -376,18 +376,6 @@ CREATE FUNCTION commit_all(message text)
 		'''
 		commit_tables=""
 		tables_to_commit = self.tables.copy()
-		#we need templates to be commited before templated tables by them
-		for table in self.templates:
-			commit_tables = commit_tables + commit_table_template % {'tbl': table}
-			templated_table = self.templates[table]
-			commit_tables = commit_tables + commit_table_template % {'tbl': templated_table}
-			tables_to_commit.remove(table)
-			tables_to_commit.remove(templated_table)
-
-            
-		for table in tables_to_commit:
-			#here template means string which is formated not template of table
-			commit_tables = commit_tables + commit_table_template % {'tbl': table}
 
 		#commit of tables that are created in deska schema for inner propose, to maintain set of referenced identifier
 		for table in self.refers_to_set:
@@ -401,6 +389,19 @@ CREATE FUNCTION commit_all(message text)
 
 					table_name = "inner_%(tbl)s_%(ref_tbl)s" % {'tbl' : table, 'ref_tbl' : reftable}
 					commit_tables = commit_tables + commit_table_template % {'tbl': table_name}
+            
+		#we need templates to be commited before templated tables by them
+		for table in self.templates:
+			commit_tables = commit_tables + commit_table_template % {'tbl': table}
+			templated_table = self.templates[table]
+			commit_tables = commit_tables + commit_table_template % {'tbl': templated_table}
+			tables_to_commit.remove(table)
+			tables_to_commit.remove(templated_table)            
+            
+		for table in tables_to_commit:
+			#here template means string which is formated not template of table
+			commit_tables = commit_tables + commit_table_template % {'tbl': table}
+
 
 
 		return self.commit_string % {'commit_tables': commit_tables}
