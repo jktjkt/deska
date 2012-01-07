@@ -705,28 +705,32 @@ LANGUAGE plpgsql;
 '''
 
 
-    diff_get_old_set = '''CREATE FUNCTION %(tbl)s_get_old_set(obj_uid bigint)
+    diff_get_old_set = '''CREATE FUNCTION %(tbl)s_get_old_set(obj_uid bigint, from_version bigint = 0)
 RETURNS text[]
 AS
 $$
 DECLARE
     changeset_id bigint;
 BEGIN
-    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(old_%(ref_tbl_name)s) FROM %(tbl)s_diff_data WHERE old_%(tbl_name)s = obj_uid AND old_flag = '1');
+    IF from_version = 0 THEN
+        changeset_id = get_current_changeset_or_null();
+        IF changeset_id IS NULL THEN
+            from_version = id2num(parent(changeset_id));
+        END IF;
+    END IF;
+    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(old_%(ref_tbl_name)s, from_version) FROM %(tbl)s_diff_data WHERE old_%(tbl_name)s = obj_uid AND old_flag = '1');
 END
 $$
 LANGUAGE plpgsql;
 
 '''
 
-    diff_get_new_set = '''CREATE FUNCTION %(tbl)s_get_new_set(obj_uid bigint)
+    diff_get_new_set = '''CREATE FUNCTION %(tbl)s_get_new_set(obj_uid bigint, to_version bigint = 0)
 RETURNS text[]
 AS
 $$
-DECLARE
-    changeset_id bigint;
 BEGIN
-    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(new_%(ref_tbl_name)s) FROM %(tbl)s_diff_data WHERE new_%(tbl_name)s = obj_uid AND new_flag = '1');
+    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(new_%(ref_tbl_name)s, to_version) FROM %(tbl)s_diff_data WHERE new_%(tbl_name)s = obj_uid AND new_flag = '1');
 END
 $$
 LANGUAGE plpgsql;
