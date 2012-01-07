@@ -1588,8 +1588,8 @@ LANGUAGE plpgsql;
 	IF NOT inner_%(tbl)s_%(refcol)s_sets_equal(newuid)
 	THEN
 		result.attribute = '%(column)s';
-		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_get_old_set(newuid));
-		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_get_new_set(newuid));
+		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_get_old_set(newuid, from_version));
+		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_get_new_set(newuid, to_version));
 		RETURN NEXT result;
 	END IF;
 
@@ -1758,7 +1758,7 @@ LANGUAGE plpgsql;
 		FOR newuid, olduid, newname, oldname, %(old_new_obj_list)s IN
 			SELECT new_uid, old_uid, new_name, old_name, %(select_old_new_list)s
 			FROM %(tbl)s_diff_data
-			WHERE new_name IS NOT NULL
+			WHERE new_name IS NOT NULL AND new_dest_bit = '0'
 		LOOP
 			newuid = COALESCE(newuid, olduid);
 			--all other changes are mentioned with new name
