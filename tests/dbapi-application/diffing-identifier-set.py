@@ -23,3 +23,15 @@ def imperative(r):
     #r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp2)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r3")
     r.assertEquals(r.c(dataDifference("r2", "r3")), expectedDiff)
+
+    # Try to remove this host nad make sure that the commit succeeds. Previously, this would fail
+    # because the inner table for service contained some leftover items.
+    tmp3 = r.c(startChangeset())
+    r.cvoid(deleteObject("host", "h"))
+    expectedDiff = [
+        {'command': 'deleteObject', 'kindName': 'host', 'objectName': 'h'},
+    ]
+    # FIXME: another manifestation of Redmine#411
+    #r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp3)), expectedDiff)
+    r.assertEquals(r.c(commitChangeset(".")), "r4")
+    r.assertEquals(r.c(dataDifference("r3", "r4")), expectedDiff)
