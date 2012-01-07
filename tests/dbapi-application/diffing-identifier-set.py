@@ -74,20 +74,12 @@ def imperative(r):
     # so we delete these extra service references by hand
     r.cvoid(setAttributeRemove("host", "y", "service", "b"))
     r.cvoid(setAttributeRemove("host", "z", "service", "b"))
-    # FIXME: Redmine#441, "y" reports the old data as [] instead of ['b']
-    # and "z" says that the old data are ['a', 'None'] instead of ['a', 'b']
     expectedDiff = [
         {'command': 'deleteObject', 'kindName': 'service', 'objectName': 'b'},
         {'command': 'setAttribute', 'kindName': 'host', 'objectName': 'y', "attributeName": "service",
-         "attributeData": [],
-         #"oldAttributeData": ["b"]
-         "oldAttributeData": []
-        },
+         "attributeData": [], "oldAttributeData": ["b"]},
         {'command': 'setAttribute', 'kindName': 'host', 'objectName': 'z', "attributeName": "service",
-         "attributeData": ["a"],
-         #"oldAttributeData": ["a", "b"]
-         "oldAttributeData": ["a", 'None']
-        },
+         "attributeData": ["a"], "oldAttributeData": ["a", "b"]},
     ]
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp5)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r6")
