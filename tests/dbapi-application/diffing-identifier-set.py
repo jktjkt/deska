@@ -92,3 +92,32 @@ def imperative(r):
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp5)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r6")
     r.assertEquals(r.c(dataDifference("r5", "r6")), expectedDiff)
+
+
+    # Test references becoming undefined
+    tmp6 = r.c(startChangeset())
+    r.c(createObject("vendor", "v"))
+    r.c(createObject("hardware", "dummy"))
+    # note: this one is different, it gets linked to the host
+    r.c(createObject("hardware", "z"))
+    r.cvoid(setAttribute("hardware", "z", "vendor", "v"))
+    r.cvoid(setAttribute("hardware", "dummy", "vendor", "v"))
+    expectedDiff = [
+        {'command': 'createObject', 'kindName': 'vendor', 'objectName': 'v'},
+        {'command': 'createObject', 'kindName': 'hardware', 'objectName': 'dummy'},
+        {'command': 'createObject', 'kindName': 'hardware', 'objectName': 'z'},
+        {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'dummy', "attributeName": "vendor",
+         "attributeData": "v", "oldAttributeData": None},
+        {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'z', "attributeName": "host",
+         "attributeData": "z", "oldAttributeData": None},
+        {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'z', "attributeName": "vendor",
+         "attributeData": "v", "oldAttributeData": None},
+        {'command': 'setAttribute', 'kindName': 'host', 'objectName': 'z', "attributeName": "hardware",
+         "attributeData": "z", "oldAttributeData": None},
+        # ...FIXME: #441, this one is *not* expected here
+        {'command': 'setAttribute', 'kindName': 'host', 'objectName': 'z', "attributeName": "service",
+         "attributeData": None, "oldAttributeData": ['a']},
+    ]
+    r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp6)), expectedDiff)
+    r.assertEquals(r.c(commitChangeset(".")), "r7")
+    r.assertEquals(r.c(dataDifference("r6", "r7")), expectedDiff)
