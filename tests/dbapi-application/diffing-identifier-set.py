@@ -17,10 +17,7 @@ def imperative(r):
         {'command': 'setAttribute', 'kindName': 'host', 'objectName': 'h', "attributeName": "note_host",
          "attributeData": "x", "oldAttributeData": None},
     ]
-    # FIXME: Redmine#441, the output from inside a changeset contains this extra items:
-    #    {'command': 'setAttribute', 'kindName': 'host', 'objectName': 'h', "attributeName": "service",
-    #     "attributeData": None, "oldAttributeData": ["a"]},
-    #r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp2)), expectedDiff)
+    r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp2)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r3")
     r.assertEquals(r.c(dataDifference("r2", "r3")), expectedDiff)
 
@@ -31,8 +28,7 @@ def imperative(r):
     expectedDiff = [
         {'command': 'deleteObject', 'kindName': 'host', 'objectName': 'h'},
     ]
-    # FIXME: another manifestation of Redmine#441
-    #r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp3)), expectedDiff)
+    r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp3)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r4")
     r.assertEquals(r.c(dataDifference("r3", "r4")), expectedDiff)
 
@@ -120,13 +116,10 @@ def imperative(r):
         helper_date_col("z", "purchase"),
         {'command': 'setAttribute', 'kindName': 'host', 'objectName': 'z', "attributeName": "hardware",
          "attributeData": "z", "oldAttributeData": None},
-        # ...FIXME: #441, this one is *not* expected here
-        {'command': 'setAttribute', 'kindName': 'host', 'objectName': 'z', "attributeName": "service",
-         "attributeData": None, "oldAttributeData": ['a']},
     ]
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp6)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r7")
-    r.assertEquals(r.c(dataDifference("r6", "r7")), expectedDiff[:-1])
+    r.assertEquals(r.c(dataDifference("r6", "r7")), expectedDiff)
 
     # Now that the data are in place, remove the 'v' vendor and see how this gets reported
     tmp7 = r.c(startChangeset())
@@ -146,8 +139,7 @@ def imperative(r):
         {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'z', "attributeName": "vendor",
          "attributeData": None, "oldAttributeData": "v"},
         # ...and the usual garbage for #441
-        {'objectName': 'z', 'attributeName': 'service', 'oldAttributeData': ['a'], 'command': 'setAttribute', 'attributeData': None, 'kindName': 'host'}
     ]
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp7)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r8")
-    r.assertEquals(r.c(dataDifference("r7", "r8")), expectedDiff[:-1])
+    r.assertEquals(r.c(dataDifference("r7", "r8")), expectedDiff)

@@ -580,6 +580,13 @@ BEGIN
             RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70014';
     END;
 
+    IF NOT EXISTS(SELECT * FROM %(tbl)s_history WHERE version = changeset_id) THEN
+        CREATE TEMP TABLE %(tbl)s_diff_data AS SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
+        FROM (SELECT * FROM %(tbl)s_history WHERE version = 0) chv
+            LEFT OUTER JOIN %(tbl)s_data_version(1) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s IS NOT DISTINCT FROM chv.%(ref_tbl_name)s);
+        RETURN;
+    END IF;
+    
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
         FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_id) chv
