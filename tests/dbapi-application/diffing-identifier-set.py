@@ -101,17 +101,31 @@ def imperative(r):
     # note: this one is different, it gets linked to the host
     r.c(createObject("hardware", "z"))
     r.cvoid(setAttribute("hardware", "z", "vendor", "v"))
+    r.cvoid(setAttribute("hardware", "z", "purchase", "2012-01-01"))
+    r.cvoid(setAttribute("hardware", "z", "warranty", "2012-01-01"))
     r.cvoid(setAttribute("hardware", "dummy", "vendor", "v"))
+    r.cvoid(setAttribute("hardware", "dummy", "purchase", "2012-01-01"))
+    r.cvoid(setAttribute("hardware", "dummy", "warranty", "2012-01-01"))
+
+    def helper_date_col(objectName, attributeName):
+        return {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': objectName,
+                "attributeName": attributeName, "attributeData": "2012-01-01",
+                "oldAttributeData": None}
+
     expectedDiff = [
         {'command': 'createObject', 'kindName': 'vendor', 'objectName': 'v'},
         {'command': 'createObject', 'kindName': 'hardware', 'objectName': 'dummy'},
         {'command': 'createObject', 'kindName': 'hardware', 'objectName': 'z'},
         {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'dummy', "attributeName": "vendor",
          "attributeData": "v", "oldAttributeData": None},
+        helper_date_col("dummy", "warranty"),
+        helper_date_col("dummy", "purchase"),
         {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'z', "attributeName": "host",
          "attributeData": "z", "oldAttributeData": None},
         {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'z', "attributeName": "vendor",
          "attributeData": "v", "oldAttributeData": None},
+        helper_date_col("z", "warranty"),
+        helper_date_col("z", "purchase"),
         {'command': 'setAttribute', 'kindName': 'host', 'objectName': 'z', "attributeName": "hardware",
          "attributeData": "z", "oldAttributeData": None},
         # ...FIXME: #441, this one is *not* expected here
@@ -120,4 +134,4 @@ def imperative(r):
     ]
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp6)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r7")
-    r.assertEquals(r.c(dataDifference("r6", "r7")), expectedDiff)
+    r.assertEquals(r.c(dataDifference("r6", "r7")), expectedDiff[:-1])
