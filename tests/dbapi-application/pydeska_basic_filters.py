@@ -171,8 +171,7 @@ def doTests(r):
 
     # Now check through the inequality operator
     matching = deska.hardware[deska.hardware.vendor != "pwn"]
-    # FIXME: fails, Redmine #442
-    #r.assertEqual(sorted(matching.keys()), sorted(myHw.keys()))
+    r.assertEqual(sorted(matching.keys()), sorted(myHw.keys()))
     matching = deska.hardware[deska.vendor.name != "pwn"]
     r.assertEqual(sorted(matching.keys()), sorted(myHw.keys()))
 
