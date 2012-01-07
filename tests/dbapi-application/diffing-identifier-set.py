@@ -135,3 +135,27 @@ def imperative(r):
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp6)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r7")
     r.assertEquals(r.c(dataDifference("r6", "r7")), expectedDiff[:-1])
+
+    # Now that the data are in place, remove the 'v' vendor and see how this gets reported
+    tmp7 = r.c(startChangeset())
+    r.cvoid(deleteObject("vendor", "v"))
+    r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp7)),
+        [{'command': 'deleteObject', 'kindName': 'vendor', 'objectName': 'v'},])
+    # such a changeset cannot be commited, though
+    # FIXME: shall raise proper exception...
+    #r.cfail(commitChangeset("."), exception=ConstraintError())
+    r.cfail(commitChangeset("."))
+    r.cvoid(setAttribute("hardware", "z", "vendor", None))
+    r.cvoid(setAttribute("hardware", "dummy", "vendor", None))
+    expectedDiff = [
+        {'command': 'deleteObject', 'kindName': 'vendor', 'objectName': 'v'},
+        {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'dummy', "attributeName": "vendor",
+         "attributeData": None, "oldAttributeData": "v"},
+        {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'z', "attributeName": "vendor",
+         "attributeData": None, "oldAttributeData": "v"},
+        # ...and the usual garbage for #441
+        {'objectName': 'z', 'attributeName': 'service', 'oldAttributeData': ['a'], 'command': 'setAttribute', 'attributeData': None, 'kindName': 'host'}
+    ]
+    r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp7)), expectedDiff)
+    r.assertEquals(r.c(commitChangeset(".")), "r8")
+    r.assertEquals(r.c(dataDifference("r7", "r8")), expectedDiff[:-1])
