@@ -25,7 +25,7 @@ def imperative(r):
     r.assertEquals(r.c(dataDifference("r2", "r3")), expectedDiff)
 
     # Try to remove this host nad make sure that the commit succeeds. Previously, this would fail
-    # because the inner table for service contained some leftover items.
+    # because of a conflict in the ordering which would get caught by the constraint checks.
     tmp3 = r.c(startChangeset())
     r.cvoid(deleteObject("host", "h"))
     expectedDiff = [
