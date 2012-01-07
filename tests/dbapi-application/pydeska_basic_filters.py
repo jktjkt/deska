@@ -163,6 +163,19 @@ def doTests(r):
     r.assertEqual(sorted(matching.keys()),
                   sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
 
+    # Ask for all HW manufactured by an imaginary vendor
+    matching = deska.hardware[deska.hardware.vendor == "pwn"]
+    r.assertEqual(matching.keys(), [])
+    matching = deska.hardware[deska.vendor.name == "pwn"]
+    r.assertEqual(matching.keys(), [])
+
+    # Now check through the inequality operator
+    matching = deska.hardware[deska.hardware.vendor != "pwn"]
+    # FIXME: fails, Redmine #442
+    #r.assertEqual(sorted(matching.keys()), sorted(myHw.keys()))
+    matching = deska.hardware[deska.vendor.name != "pwn"]
+    r.assertEqual(sorted(matching.keys()), sorted(myHw.keys()))
+
     # Just enumerate all of the HW
     matching = deska.vendor._all()
     r.assertEqual(sorted(matching.keys()), sorted(["HP", "IBM", "SGI"]))
