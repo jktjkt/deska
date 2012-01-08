@@ -152,8 +152,9 @@ def getDataFunction(funcName,kindName,directAccess):
 	'''get name of the data function'''
 	if directAccess:
 		return ""
-	resolved = ["multipleResolvedObjectData","multipleResolvedObjectDataWithOrigin","resolvedObjectData", "resolvedObjectDataWithOrigin"]
+	resolved = ["multipleResolvedObjectData","multipleResolvedObjectDataWithOrigin","resolvedObjectData", "resolvedObjectDataWithOrigin","kindInstances"]
 	resolvedDict = {
+		"kindInstances": "_resolved_data($1)",
 		"multipleResolvedObjectData": "_resolved_data($1)",
 		"multipleResolvedObjectDataWithOrigin": "_resolved_data_template_info($1)",
 		"resolvedObjectData": "_resolved_object_data($1,$2)",
