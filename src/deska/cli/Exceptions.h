@@ -68,8 +68,8 @@ DESKA_EXCEPTION(NestingError, ParserException);
 /** @short A top-level object has an invalid type */
 DESKA_EXCEPTION(InvalidObjectKind, ParserException);
 
-/** @short Malformed identifier */
-DESKA_EXCEPTION(MalformedIdentifier, ParserException);
+/** @short Malformed or missing identifier */
+DESKA_EXCEPTION(MalformedOrMissingIdentifier, ParserException);
 
 /** @short An object required at this point */
 DESKA_EXCEPTION(ObjectDefinitionNotFound, ParserException);
