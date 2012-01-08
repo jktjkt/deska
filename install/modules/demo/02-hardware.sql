@@ -16,7 +16,7 @@ CREATE TABLE hardware (
 	vendor bigint 
 		CONSTRAINT rrefer_hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
 	purchase date NOT NULL,
-	warranty date NOT NULL,
+	warranty date,
 	-- GB of RAM
 	ram INT
 		CONSTRAINT hardware_ram_positive
