@@ -275,5 +275,5 @@ for switch in switches:
 
 t3 = time.time()
 
-file("__timing-stats", "wb").write(
-    "DHCP VLAN 25: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))
+#file("__timing-stats", "wb").write(
+#    "DHCP VLAN 25: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))

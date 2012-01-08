@@ -21,5 +21,5 @@ pickle.dump(modelhw_map, file("hw-defs", "wb"))
 
 t3 = time.time()
 
-file("__timing-stats", "ab").write(
-    "hw-management: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))
+#file("__timing-stats", "ab").write(
+#    "hw-management: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))
