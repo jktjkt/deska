@@ -19,13 +19,14 @@
 
 # The database scheme to use
 export DESKA_DB=d_fzu
-#export DESKA_DB=d_demo
+export DESKA_DB=d_demo
 
 # Enable configuration generators. The tests/prepare-git-repo.sh script can be
 # used to set up this directory tree, and sample scripts in the
 # scripts/config-generators directory can be symlinked into the
 # $DESKA_CFGGEN_SCRIPTS directory to activate those currently in use at the FZU.
 export DESKA_CFGGEN_BACKEND=git
+export DESKA_CFGGEN_BACKEND=fake
 export DESKA_CFGGEN_SCRIPTS=/home/jkt/work/fzu/deska/_build/cfggen-testing/scripts
 export DESKA_CFGGEN_GIT_REPO=/home/jkt/work/fzu/deska/_build/cfggen-testing/cfggen-repo
 export DESKA_CFGGEN_GIT_WC=/home/jkt/work/fzu/deska/_build/cfggen-testing/cfggen-wc
