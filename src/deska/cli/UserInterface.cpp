@@ -424,9 +424,10 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
     adjustedContext.back().kind = kind;
     if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
+            Db::Identifier connName = contextStackToPath(context);
             std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(adjustedContext);
             if (connectedObjects.empty())
-                connectedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+                connectedObjects.push_back(ObjectDefinition(context.back().kind, connName));
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), connectedObjects);
         } catch (ContextStackConversionError &e) {
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
@@ -452,9 +453,10 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
     adjustedContext.back().kind = kind;
     if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
+            Db::Identifier connName = contextStackToPath(context);
             std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(adjustedContext);
             if (connectedObjects.empty())
-                connectedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+                connectedObjects.push_back(ObjectDefinition(context.back().kind, connName));
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), connectedObjects);
         } catch (ContextStackConversionError &e) {
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
