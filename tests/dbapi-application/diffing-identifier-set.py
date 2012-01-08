@@ -1,7 +1,7 @@
 from apiUtils import *
 
 def imperative(r):
-    # Redmine #441, modifing an object reports an extra diff in its identifier_set
+    # Redmine #441, modifing an object reported an extra diff in its identifier_set
 
     # initialize data
     tmp1 = r.c(startChangeset())
@@ -138,7 +138,6 @@ def imperative(r):
          "attributeData": None, "oldAttributeData": "v"},
         {'command': 'setAttribute', 'kindName': 'hardware', 'objectName': 'z', "attributeName": "vendor",
          "attributeData": None, "oldAttributeData": "v"},
-        # ...and the usual garbage for #441
     ]
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp7)), expectedDiff)
     r.assertEquals(r.c(commitChangeset(".")), "r8")
