@@ -172,6 +172,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(fzuBatchedChanges DBSCHEME fzu)
     deska_dbapi_test(fzuRegressions DBSCHEME fzu)
     deska_dbapi_test(fzuTemplates DBSCHEME fzu)
+    deska_dbapi_test(diffing-identifier-set)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)
@@ -200,7 +201,7 @@ if(RUN_SQL_TESTS)
     deska_cli_int_test(sample)
     deska_cli_int_test(436)
     deska_cli_int_test(437)
-    #deska_cli_int_test(create-nested)
+    deska_cli_int_test(create-nested)
     deska_cli_int_test(filters-create)
 
     deska_copy_files( ${CMAKE_CURRENT_SOURCE_DIR}/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql )

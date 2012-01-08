@@ -93,6 +93,13 @@
 
 
 \begin{frame}[fragile]
+\begin{center}
+Ukázka práce na FZÚ
+\end{center}
+\end{frame}
+
+
+\begin{frame}[fragile]
 \frametitle{Požadavky zadavatele}
 \begin{itemize}
     \item CLI rozhraní
@@ -138,11 +145,11 @@
             \item {\bf Kind} $\rightarrow$ databázová tabulka
                 \begin{itemize}
                     \item Určuje povolené atributy a jejich datové typy
-                    \item {\tt host}, {\tt hardware}, {\tt vendor},\ldots
+                    \item {\tt hardware}, {\tt switch}, {\tt vendor},\ldots
                 \end{itemize}
             \item {\bf Objekt} $\rightarrow$ řádka v~tabulce
                 \begin{itemize}
-                    \item ({\tt wn123}, {\tt www01}, {\tt wn123->eth0},\ldots)
+                    \item ({\tt wn123}, {\tt www01}, {\tt wn123->eth0}, {\tt Cisco},\ldots)
                 \end{itemize}
         \end{itemize}
         \begin{minted}{text}
@@ -166,6 +173,14 @@
     \item Relace určují pravidla pro vztahy mezi jednotlivými tabulkami
     \item Přidání konkrétního {\em významu} cizím klíčům
         \begin{itemize}
+            \item {\bf Odkazování}
+                \begin{itemize}
+                    \item Odkaz na patřičný {\tt vendor} z~každého {\tt hardware}
+                \end{itemize}
+            \item {\bf Tagování}
+                \begin{itemize}
+                    \item Přiřazení logických rolí jednotlivým serverům
+                \end{itemize}
             \item {\bf Template} určuje výchozí hodnotu atributů
                 \begin{itemize}
                     \item Dodávka mnoha serverů najednou
@@ -178,14 +193,6 @@
                 \begin{itemize}
                     \item Umožňuje vytvářet hierarchické stromy objektů modelující realitu
                     \item Síťová rozhraní: {\tt srv123->eth0}
-                \end{itemize}
-            \item {\bf Odkazování}
-                \begin{itemize}
-                    \item Odkaz na patřičný {\tt warranty\_contract} z~každého {\tt hardware}
-                \end{itemize}
-            \item {\bf Tagování}
-                \begin{itemize}
-                    \item Přiřazení logických rolí jednotlivým serverům
                 \end{itemize}
         \end{itemize}
 \end{itemize}
@@ -212,6 +219,7 @@
                 \item PostgreSQL~9.0
                 \item Pl/PgSQL, PgPython
                 \item generátory kódu
+                \item Python pomocné funkce
             \end{itemize}
         \item Výstupní generátory:
             \begin{itemize}
@@ -255,6 +263,13 @@ for host in deska.host[(deska.host.color == "red") &
 
 
 \begin{frame}[fragile]
+\begin{center}
+Předvedení Desky
+\end{center}
+\end{frame}
+
+
+\begin{frame}[fragile]
 \frametitle{Problémy v použitých komponentách}
 \begin{itemize}
     \item PostgreSQL: nedostatečná chybová diagnostika u selhávajících integritních omezení
@@ -286,6 +301,7 @@ for host in deska.host[(deska.host.color == "red") &
 \end{itemize}
 \end{frame}
 
+
 \begin{frame}[fragile]
 \frametitle{Nasazení na FZÚ}
 \begin{itemize}
@@ -306,43 +322,27 @@ for host in deska.host[(deska.host.color == "red") &
 
 \begin{frame}[fragile]
 \frametitle{Statistika}
-\begin{columns}[t]
-\begin{column}{.5\textwidth}
-\begin{itemize}
-    \item Více než 40~000 řádků {\em kódu} (cca.~80~000 celkem):
-        \begin{description}
-            \item[C++] 19319
-            \item[SQL] 10644
-            \item[Python] 9993
-            \item[\ldots]
-        \end{description}
-\end{itemize}
-\end{column}
-\begin{column}{.5\textwidth}
-\begin{itemize}
-    \item Nejvíce kódu v~testech:
-        \begin{description}
-            \item[testy] 11072
-            \item[CLI] 9672
-            \item[server] 8821
-            \item[knihovny] 4799
-            \item[\ldots]
-        \end{description}
-\end{itemize}
-\end{column}
-\end{columns}
 
+\includegraphics[width=\textwidth]{deska-ohloh-loc-2011.png}
+
+\begin{columns}[t]
+\begin{column}{.45\textwidth}
 \begin{itemize}
-    \item Celkové náklady:\footnote{Odhad pomocí programu {\tt sloccount} Davida Wheelera}
+    \item 750+ odpracovaných hodin za~jednoho člena týmu
+    \item Nejrozsáhlejší komponenta: {\bf testy}
+\end{itemize}
+\end{column}
+\begin{column}{.55\textwidth}
+\begin{itemize}
+    \item Celkové náklady:
         \begin{description}
             \item[člověkoroky] 9,7
             \item[počet vývojářů] 7,64
             \item[odhadovaná doba] 15,24 měsíců
         \end{description}
-    \item 750+ odpracovaných hodin za~jednoho člena týmu
 \end{itemize}
-%{\em This very impressive number of comments puts Deska among the top 10\% of
-%        all SQL projects on Ohloh.}\footnote{Ohloh.net, 21. prosince 2011}
+\end{column}
+\end{columns}
 \end{frame}
 
 
@@ -359,9 +359,6 @@ for host in deska.host[(deska.host.color == "red") &
     \item Splňuje podmínky k produkčnímu nasazení, ověřeno v~pilotním provozu
     \item Řeší reálné požadavky uživatelů
     \item Patche přijaty open-source projekty
-        \begin{itemize}
-            \item Nabídka zaměstnání
-        \end{itemize}
     \item Automatizované testy na mnoha úrovních
     \item Vystoupení na třech zahraničních konferencích (Dubna, Taipei, Vancouver)
         \begin{itemize}
