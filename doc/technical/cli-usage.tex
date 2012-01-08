@@ -130,6 +130,10 @@ see, which filter exactly. This command will show you exactly the filter. You ca
 will show you list of all objects matching current context. It can show you all objects, that can be affected by commands
 operating with context.
 
+Note that when you are changing objects in the filter, the set of objects matched by this filter could differ after processing
+each change. For example when you have filter on hosts having a specific service and then you remove this service from all
+hosts, your filter will now match no objects.
+
 \section{Showing content of the DB}
 
 There are two ways to look at what is currently stored in the DB. First way is showing content of the whole DB. This
