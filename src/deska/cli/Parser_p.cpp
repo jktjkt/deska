@@ -992,7 +992,7 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
-        m_parser->parseError(MalformedIdentifier(it->toString(), line, it->errorPosition()));
+        m_parser->parseError(MalformedOrMissingIdentifier(it->toString(), line, it->errorPosition()));
         return;
     }
 
@@ -1014,7 +1014,7 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
-        m_parser->parseError(MalformedIdentifier(it->toString(), line, line.begin()));
+        m_parser->parseError(MalformedOrMissingIdentifier(it->toString(), line, line.begin()));
         return;
     }
 
@@ -1091,7 +1091,7 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
-        m_parser->parseError(MalformedIdentifier(it->toString(), line, it->errorPosition()));
+        m_parser->parseError(MalformedOrMissingIdentifier(it->toString(), line, it->errorPosition()));
         return;
     }
 
