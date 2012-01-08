@@ -106,6 +106,14 @@ LogFilterParseError<Iterator>::LogFilterParseError(Iterator start, Iterator end,
 
 
 template <typename Iterator>
+LogFilterParseError<Iterator>::LogFilterParseError(const Db::Identifier &kindName, LogFilterParseErrorType logFilterParseErrorType):
+    m_errorType(logFilterParseErrorType), m_context(kindName)
+{
+}
+
+
+
+template <typename Iterator>
 void LogFilterParseError<Iterator>::extractKindNames(const Db::Identifier &name,
                                                   const qi::rule<Iterator, Db::Identifier(), ascii::space_type> &rule)
 {
@@ -144,6 +152,7 @@ std::string LogFilterParseError<Iterator>::toString() const
             ostr << "metadata value for " << m_context << ".";
             break;
         case LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER:
+        case LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER_NESTING:
             ostr << "object name for " << m_context << ".";
             break;
         default:
@@ -159,7 +168,10 @@ std::string LogFilterParseError<Iterator>::toString() const
             ostr << "<" << *it << "> ";
         ostr << "].";
     }
-    ostr << " At offset " << static_cast<int>(m_errorPos - m_start) << " in the parameter.";
+    if (m_errorType != LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER_NESTING)
+        ostr << " At offset " << static_cast<int>(m_errorPos - m_start) << " in the parameter.";
+    else
+        ostr << " Error while finding nesting parents for current kind and object name.";
     return ostr.str();
 }
 
@@ -219,8 +231,7 @@ LogFilterParser<Iterator>::LogFilterParser(Log *parent): LogFilterParser<Iterato
 
     // Kind name recognized -> try to parse object name
     kindDispatch = (raw[keyword[kinds[_a = _1]]][rangeToString(_1, phoenix::ref(currentKindName))] > operators[_b = _1]
-        > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(_b, phoenix::ref(currentKindName), 
-            "name", phoenix::construct<Db::Value>(_1))]);
+        > lazy(_a)[_val = phoenix::bind(&LogFilterParser::constructKindFilter, this, _b, phoenix::ref(currentKindName), _1)]);
     // Metadata name recognized -> try to parse metadata value
     metadataDispatch = (raw[keyword[metadatas[_a = _1]]][rangeToString(_1, phoenix::ref(currentMetadataName))] > operators[_b = _1]
         > lazy(_a)[_val = phoenix::construct<Db::MetadataExpression>(_b, phoenix::ref(currentMetadataName), _1)]);
@@ -252,6 +263,106 @@ template <typename Iterator>
 void LogFilterParser<Iterator>::addKind(const Db::Identifier &kindName)
 {
     kinds.add(kindName, predefinedRules->getObjectIdentifier());
+}
+
+
+
+template <typename Iterator>
+void LogFilterParser<Iterator>::initParser()
+{
+    m_parseError = false;
+}
+
+
+
+template <typename Iterator>
+bool LogFilterParser<Iterator>::parseError()
+{
+    return m_parseError;
+}
+
+
+
+template <typename Iterator>
+Db::Filter LogFilterParser<Iterator>::constructKindFilter(Db::ComparisonOperator op, const Db::Identifier &kindName,
+                                                          const Db::Identifier &objectName)
+{
+    std::vector<Db::Identifier> objectNames = pathToVector(objectName);
+    if (objectNames.back().empty()) {
+        m_parent->reportParseError(LogFilterParseError<Iterator>(kindName, LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER_NESTING));
+        m_parseError = true;
+        return Db::Filter();
+    }
+    if (objectNames.size() == 1) {
+        return Db::AttributeExpression(op, kindName, "name", Db::Value(objectName));
+    } else {
+        Db::Identifier localName = objectNames.back();
+        Db::Identifier parentName = vectorToPath(std::vector<Db::Identifier>(objectNames.begin(), objectNames.end() - 1));
+        Db::Identifier parentKind = m_parent->embeddedIntoKind(kindName);
+        
+        Db::Identifier embMeasure = kindName;
+        unsigned int eDepth = 0;
+        for (;;) {
+            Db::Identifier embParent = m_parent->embeddedIntoKind(embMeasure);
+            if (embParent.empty())
+                break;
+            ++eDepth;
+            embMeasure = embParent;
+        }
+        if (eDepth != (objectNames.size() - 1)) {
+            m_parent->reportParseError(LogFilterParseError<Iterator>(kindName,
+                                       LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER_NESTING));
+            m_parseError = true;
+            return Db::Filter();
+        }
+
+        std::vector<Db::Filter> andFilter;
+        std::vector<Db::Filter> orFilter;
+        switch (op) {
+            case Db::FILTER_COLUMN_EQ:
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kindName, "name", Db::Value(localName)));
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kindName, parentKind, Db::Value(parentName)));
+                return Db::AndFilter(andFilter);
+                break;
+            case Db::FILTER_COLUMN_NE:
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_NE, kindName, "name", Db::Value(localName)));
+                orFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_NE, kindName, parentKind, Db::Value(parentName)));
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kindName, parentKind, Db::Value(parentName)));
+                orFilter.push_back(Db::AndFilter(andFilter));
+                return Db::OrFilter(orFilter);
+                break;
+            case Db::FILTER_COLUMN_GT:
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_GT, kindName, "name", Db::Value(localName)));
+                orFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_GT, kindName, parentKind, Db::Value(parentName)));
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kindName, parentKind, Db::Value(parentName)));
+                orFilter.push_back(Db::AndFilter(andFilter));
+                return Db::OrFilter(orFilter);
+                break;
+            case Db::FILTER_COLUMN_GE:
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_GE, kindName, "name", Db::Value(localName)));
+                orFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_GT, kindName, parentKind, Db::Value(parentName)));
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kindName, parentKind, Db::Value(parentName)));
+                orFilter.push_back(Db::AndFilter(andFilter));
+                return Db::OrFilter(orFilter);
+                break;
+            case Db::FILTER_COLUMN_LT:
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_LT, kindName, "name", Db::Value(localName)));
+                orFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_LT, kindName, parentKind, Db::Value(parentName)));
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kindName, parentKind, Db::Value(parentName)));
+                orFilter.push_back(Db::AndFilter(andFilter));
+                return Db::OrFilter(orFilter);
+                break;
+            case Db::FILTER_COLUMN_LE:
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_LE, kindName, "name", Db::Value(localName)));
+                orFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_LT, kindName, parentKind, Db::Value(parentName)));
+                andFilter.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kindName, parentKind, Db::Value(parentName)));
+                orFilter.push_back(Db::AndFilter(andFilter));
+                return Db::OrFilter(orFilter);
+                break;
+            default:
+                throw std::domain_error("Db::ComparisonOperator out of range");
+        }
+    }
 }
 
 
@@ -290,8 +401,9 @@ bool Log::operator()(const std::string &params)
     std::string::const_iterator end = params.end();
     Db::Filter filter;
     parseErrors.clear();
+    filterParser->initParser();
     bool r = boost::spirit::qi::phrase_parse(iter, end, *filterParser, boost::spirit::ascii::space, filter);
-    if (!r || (iter != end)) {
+    if (!r || (iter != end) || filterParser->parseError()) {
         std::vector<LogFilterParseError<iterator_type> >::iterator it;
 
         // Error in the attribute value
@@ -301,9 +413,23 @@ bool Log::operator()(const std::string &params)
             ui->io->reportError(it->toString());
             return false;
         }
+        // Error in the object name
+        it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&LogFilterParseError<iterator_type>::errorType,
+                          phoenix::arg_names::_1) == LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER);
+        if (it != parseErrors.end()) {
+            ui->io->reportError(it->toString());
+            return false;
+        }
         // Error in attribute name in removal
         it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&LogFilterParseError<iterator_type>::errorType,
                           phoenix::arg_names::_1) == LOG_FILTER_PARSE_ERROR_TYPE_ATTRIBUTE);
+        if (it != parseErrors.end()) {
+            ui->io->reportError(it->toString());
+            return false;
+        }
+        // Error in the object name nesting
+        it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&LogFilterParseError<iterator_type>::errorType,
+                          phoenix::arg_names::_1) == LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER_NESTING);
         if (it != parseErrors.end()) {
             ui->io->reportError(it->toString());
             return false;
@@ -327,6 +453,14 @@ void Log::reportParseError(const LogFilterParseError<iterator_type> &error)
 }
 
 
+
+Db::Identifier Log::embeddedIntoKind(const Db::Identifier &kind) const
+{
+    return ui->m_dbInteraction->embeddedIntoKind(kind);
+}
+
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template void LogAttributeErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const boost::spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &kinds, const qi::symbols<char, qi::rule<iterator_type, Db::MetadataValue(), ascii::space_type> > &metadatas, Log *parent) const;
@@ -338,6 +472,8 @@ template void LogIdentifierErrorHandler<iterator_type>::operator()(iterator_type
 template LogFilterParseError<iterator_type>::LogFilterParseError(iterator_type start, iterator_type end, iterator_type errorPos, const boost::spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &kinds, const qi::symbols<char, qi::rule<iterator_type, Db::MetadataValue(), ascii::space_type> > &metadatas, LogFilterParseErrorType logFilterParseErrorType);
 
 template LogFilterParseError<iterator_type>::LogFilterParseError(iterator_type start, iterator_type end, iterator_type errorPos, const boost::spirit::info &what, const Db::Identifier &attributeName, LogFilterParseErrorType logFilterParseErrorType);
+
+template LogFilterParseError<iterator_type>::LogFilterParseError(const Db::Identifier &kindName, LogFilterParseErrorType logFilterParseErrorType);
 
 template void LogFilterParseError<iterator_type>::extractKindNames(const Db::Identifier &name, const qi::rule<iterator_type, Db::Identifier(), ascii::space_type> &rule);
 
@@ -352,6 +488,12 @@ template LogFilterParser<iterator_type>::LogFilterParser(Log *parent);
 template LogFilterParser<iterator_type>::~LogFilterParser();
 
 template void LogFilterParser<iterator_type>::addKind(const Db::Identifier &kindName);
+
+template void LogFilterParser<iterator_type>::initParser();
+
+template bool LogFilterParser<iterator_type>::parseError();
+
+template Db::Filter LogFilterParser<iterator_type>::constructKindFilter(Db::ComparisonOperator op, const Db::Identifier &kindName, const Db::Identifier &objectName);
 
 }
 }
