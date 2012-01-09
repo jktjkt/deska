@@ -13,6 +13,7 @@ from dutil import getDataSuffix
 # use joining, but many select inside, these are needed with this hack
 # only for more columnContains in filter
 numberOfColumnContainsInFilter = 0
+noRevisionParameter = True
 
 class Condition():
 	'''Class to store and handle column/value/operator data'''
@@ -109,7 +110,10 @@ class Condition():
 			toTbl = generated.relToTbl(relName)
 			if self.kind == fromTbl and self.col == fromCol and self.val is not None:
 				# update coldef for identifier references
-				self.id = "{0}_find_uid({1},$1)".format(toTbl,self.id)
+				if noRevisionParameter:
+					self.id = "{0}_find_uid({1})".format(toTbl,self.id)
+				else:
+					self.id = "{0}_find_uid({1},$1)".format(toTbl,self.id)
 				self.checkDistinct = True
 
 	def operatorParse(self):
@@ -205,9 +209,11 @@ class AdditionalEmbedCondition(Condition):
 		# We are called from else part - self.newcond...
 		# because this is column refers to another table
 
-		#version parametr, $1 every time
 		if self.val is not None:
-			self.id = "{0}_find_uid({1},$1)".format(self.col,self.id)
+			if noRevisionParameter:
+				self.id = "{0}_find_uid({1})".format(self.col,self.id)
+			else:
+				self.id = "{0}_find_uid({1},$1)".format(self.col,self.id)
 			self.checkDistinct = True
 
 class Filter():
@@ -219,6 +225,9 @@ class Filter():
 		self.directAccess = directAccess
 		# counter for value id's in select string
 		self.counter = start
+		if start > 1:
+			global noRevisionParameter
+			noRevisionParameter = False
 		# list of values for select string
 		self.values = list()
 		# set of kinds
