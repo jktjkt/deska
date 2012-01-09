@@ -448,6 +448,10 @@ std::string OurModificationConverter2::operator()(const Db::SetAttributeModifica
         return ostr.str();
     } else {
         std::ostringstream ostr;
+        std::vector<ObjectDefinition>::const_iterator it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
+            ObjectDefinition(lModification.kindName, lModification.objectName));
+        if (it != m_ourDeletions.end())
+            ostr << "# ";
         ostr << "end" << std::endl;
         ostr << modification.kindName << " " << modification.objectName << std::endl;
         ostr << "#    " << modification.attributeName << " set"
@@ -569,10 +573,12 @@ std::string ExternModificationConverter2::operator()(const Db::SetAttributeModif
     } else {
         std::ostringstream ostr;
         std::vector<ObjectDefinition>::const_iterator it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
-            ObjectDefinition(modification.kindName, modification.objectName));
+            ObjectDefinition(lModification.kindName, lModification.objectName));
         if (it != m_ourDeletions.end())
             ostr << "# ";
         ostr << "end" << std::endl;
+        it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
+            ObjectDefinition(modification.kindName, modification.objectName));
         if (it != m_ourDeletions.end())
             ostr << "# ";
         ostr << modification.kindName << " " << modification.objectName << std::endl;
@@ -690,6 +696,10 @@ std::string BothModificationConverter2::operator()(const Db::SetAttributeModific
     return ostr.str();
     } else {
         std::ostringstream ostr;
+        std::vector<ObjectDefinition>::const_iterator it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
+            ObjectDefinition(lModification.kindName, lModification.objectName));
+        if (it != m_ourDeletions.end())
+            ostr << "# ";
         ostr << "end" << std::endl;
         ostr << modification.kindName << " " << modification.objectName << std::endl;
         ostr << "#    " << modification.attributeName << " set"
@@ -1052,16 +1062,21 @@ bool Rebase::operator()(const std::string &params)
 
     ModificationTypeGetter modificationTypeGetter;
     ModificationSetAttrExtractor modificationSetAttrExtractor;
-    if (!ourModifications.empty() &&
-        (boost::apply_visitor(modificationTypeGetter, ourModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR))
-        ofs << "end" << std::endl;
-    if (!externModifications.empty() &&
-        (boost::apply_visitor(modificationTypeGetter, externModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR)) {
-        std::vector<ObjectDefinition>::const_iterator it = std::find(ourDeletions.begin(), ourDeletions.end(),
-            boost::apply_visitor(modificationSetAttrExtractor, externModifications.back()));
-        if (it != ourDeletions.end())
-            ofs << "# ";
-        ofs << "end" << std::endl;
+    if (!ourModifications.empty() || !externModifications.empty()) {
+        if (!ourModifications.empty() && (lastModif == (ourModifications.end() - 1))) {
+            if (boost::apply_visitor(modificationTypeGetter, *lastModif) == OBJECT_MODIFICATION_TYPE_SETATTR)
+                ofs << "end" << std::endl;
+        } else if (!externModifications.empty() && (lastModif == (externModifications.end() - 1))) {
+            if (boost::apply_visitor(modificationTypeGetter, *lastModif) == OBJECT_MODIFICATION_TYPE_SETATTR) {
+                std::vector<ObjectDefinition>::const_iterator it = std::find(ourDeletions.begin(), ourDeletions.end(),
+                    boost::apply_visitor(modificationSetAttrExtractor, *lastModif));
+                if (it != ourDeletions.end())
+                    ofs << "# ";
+                ofs << "end" << std::endl;
+            }
+        } else {
+            throw std::logic_error("Deska::CLI::Rebase::operator(): Last modification not found.");
+        }
     }
 
     ofs.close();
