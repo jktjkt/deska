@@ -35,8 +35,8 @@ namespace Cli
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
-    tQuotedString %= (qi::lit('"') >> qi::lexeme[+(ascii::char_ - ascii::char_('"'))] >> qi::lit('"')) |
-                     (qi::lit('\'') >> qi::lexeme[+(ascii::char_ - ascii::char_('\''))] >> qi::lit('\''));
+    tQuotedString %= qi::lexeme[(qi::lit('"') >> +(ascii::char_ - ascii::char_('"')) >> qi::lit('"'))] |
+                     qi::lexeme[(qi::lit('\'') >> +(ascii::char_ - ascii::char_('\'')) >> qi::lit('\''))];
     tSimpleString %= qi::lexeme[+(ascii::char_ - ascii::space)];
     tIdentifier %= qi::raw[qi::lexeme[!qi::lit("where") >> (+(*qi::lit('-') >> +(ascii::alnum | qi::lit('_'))) % "->") >> -qi::lit("->")]];
     tIdentifierSet %= qi::lit("[") > (tIdentifier % ",") > qi::lit("]");
@@ -92,7 +92,7 @@ PredefinedRules<Iterator>::PredefinedRules()
 
     rulesMap[Db::TYPE_BOOL] = qi::bool_
         [qi::_val = phoenix::static_cast_<bool>(qi::_1)];
-    rulesMap[Db::TYPE_BOOL].name("bool");
+    rulesMap[Db::TYPE_BOOL].name("boolean");
 
     rulesMap[Db::TYPE_IPV4_ADDRESS] = tIPv4Addr
         // got to specify the overload by hand; see http://stackoverflow.com/questions/2326586/how-to-force-template-function-overload-for-boostbind for details

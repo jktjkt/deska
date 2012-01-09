@@ -73,6 +73,13 @@ public:
     */
     void reportParseError(const LogFilterParseError<iterator_type> &error);
 
+    /** @short Function for obtaining kind name where the kind is embedded
+    *
+    *   @param kind kind name which parent are we looking for
+    *   @param kind's parent of empty string if the kind is top-level
+    */
+    Db::Identifier embeddedIntoKind(const Db::Identifier &kind) const;
+
 private:
     /** Parser of parameters */
     LogFilterParser<iterator_type> *filterParser;

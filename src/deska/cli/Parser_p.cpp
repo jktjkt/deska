@@ -992,7 +992,7 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
-        m_parser->parseError(MalformedIdentifier(it->toString(), line, it->errorPosition()));
+        m_parser->parseError(MalformedOrMissingIdentifier(it->toString(), line, it->errorPosition()));
         return;
     }
 
@@ -1014,7 +1014,7 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
-        m_parser->parseError(MalformedIdentifier(it->toString(), line, line.begin()));
+        m_parser->parseError(MalformedOrMissingIdentifier(it->toString(), line, line.begin()));
         return;
     }
 
@@ -1091,7 +1091,7 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
-        m_parser->parseError(MalformedIdentifier(it->toString(), line, it->errorPosition()));
+        m_parser->parseError(MalformedOrMissingIdentifier(it->toString(), line, it->errorPosition()));
         return;
     }
 
@@ -1436,88 +1436,99 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         std::vector<std::string> expectedTypes = it->expectedTypes();
-        if ((expectedTypes.size() == 1) && (expectedTypes.front() == "identifier (alphanumerical letters and _)")) {
-            // Error have to occur at the end of the line
-            if (((realEnd - it->errorPosition()) == 0) && (!it->contextKind().empty())) {
-                //Check whether the attribute reffers to some kind
-                std::vector<std::pair<Db::Identifier, Db::Identifier> >::const_iterator itr;
-                for (itr = refersTo[it->contextKind()].begin();
-                     itr != refersTo[it->contextKind()].end(); ++itr)
-                         if (itr->first == it->context())
-                             break;
-                if (itr != refersTo[it->contextKind()].end()) {
-                    std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
+        if (expectedTypes.size() == 1) {
+            if (expectedTypes.front() == "identifier (alphanumerical letters and _)") {
+                // Error have to occur at the end of the line
+                if (((realEnd - it->errorPosition()) == 0) && (!it->contextKind().empty())) {
+                    //Check whether the attribute reffers to some kind
+                    std::vector<std::pair<Db::Identifier, Db::Identifier> >::const_iterator itr;
+                    for (itr = refersTo[it->contextKind()].begin();
+                         itr != refersTo[it->contextKind()].end(); ++itr)
+                             if (itr->first == it->context())
+                                 break;
+                    if (itr != refersTo[it->contextKind()].end()) {
+                        std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
 #ifdef PARSER_DEBUG
         std::cout << "Tab completion: Instances from relation REFERS_TO of kind " << itr->second << std::endl;
 #endif
-                    for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                        possibilities.push_back(line + *iti);
+                        for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                            possibilities.push_back(line + *iti);
+                        }
                     }
-                }
 
-                std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> >::const_iterator i = embeddedInto.find(it->contextKind());
-                if ((i != embeddedInto.end()) && (i->second.first == it->context())) {
-                    std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(i->second.second);
+                    std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> >::const_iterator i = embeddedInto.find(it->contextKind());
+                    if ((i != embeddedInto.end()) && (i->second.first == it->context())) {
+                        std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(i->second.second);
 #ifdef PARSER_DEBUG
         std::cout << "Tab completion: Instances from relation EMBED_INTO of kind " << i->second.second << std::endl;
 #endif
-                    for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                        possibilities.push_back(line + *iti);
+                        for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                            possibilities.push_back(line + *iti);
+                        }
                     }
-                }
 
-                for (itr = contains[it->contextKind()].begin();
-                     itr != contains[it->contextKind()].end(); ++itr)
-                         if (itr->first == it->context())
-                             break;
-                if (itr != contains[it->contextKind()].end()) {
-                    std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
+                    for (itr = contains[it->contextKind()].begin();
+                         itr != contains[it->contextKind()].end(); ++itr)
+                             if (itr->first == it->context())
+                                 break;
+                    if (itr != contains[it->contextKind()].end()) {
+                        std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
 #ifdef PARSER_DEBUG
         std::cout << "Tab completion: Instances from relation CONTAINS of kind " << itr->second << std::endl;
 #endif
-                    for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                        possibilities.push_back(line + *iti);
+                        for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                            possibilities.push_back(line + *iti);
+                        }
                     }
-                }
 
-                for (itr = containable[it->contextKind()].begin();
-                     itr != containable[it->contextKind()].end(); ++itr)
-                         if (itr->first == it->context())
-                             break;
-                if (itr != containable[it->contextKind()].end()) {
-                    std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
+                    for (itr = containable[it->contextKind()].begin();
+                         itr != containable[it->contextKind()].end(); ++itr)
+                             if (itr->first == it->context())
+                                 break;
+                    if (itr != containable[it->contextKind()].end()) {
+                        std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
 #ifdef PARSER_DEBUG
         std::cout << "Tab completion: Instances from relation CONTAINABLE of kind " << itr->second << std::endl;
 #endif
-                    for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                        possibilities.push_back(line + *iti);
+                        for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                            possibilities.push_back(line + *iti);
+                        }
                     }
-                }
 
-                for (itr = templatized[it->contextKind()].begin();
-                     itr != templatized[it->contextKind()].end(); ++itr)
-                         if (itr->first == it->context())
-                             break;
-                if (itr != templatized[it->contextKind()].end()) {
-                    std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
+                    for (itr = templatized[it->contextKind()].begin();
+                         itr != templatized[it->contextKind()].end(); ++itr)
+                             if (itr->first == it->context())
+                                 break;
+                    if (itr != templatized[it->contextKind()].end()) {
+                        std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
 #ifdef PARSER_DEBUG
         std::cout << "Tab completion: Instances from relation TEMPLATIZED of kind " << itr->second << std::endl;
 #endif
-                    for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                        possibilities.push_back(line + *iti);
+                        for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                            possibilities.push_back(line + *iti);
+                        }
                     }
-                }
-                
-                if (it->context() == "name") {
-                    std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->contextKind());
+                    
+                    if (it->context() == "name") {
+                        std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->contextKind());
 #ifdef PARSER_DEBUG
         std::cout << "Tab completion: Instances of " << it->contextKind() << " in filter on name" << std::endl;
 #endif
-                    for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                        possibilities.push_back(line + *iti);
+                        for (std::vector<Db::Identifier>::const_iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                            possibilities.push_back(line + *iti);
+                        }
                     }
                 }
-            }
+            } else if(expectedTypes.front() == "boolean") {
+                // Error have to occur at the end of the line
+                if (((realEnd - it->errorPosition()) == 0) && (!it->contextKind().empty())) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion: True and false for boolean attribute" << std::endl;
+#endif
+                    possibilities.push_back(line + "true");
+                    possibilities.push_back(line + "false");
+                }
+            } 
         }
     }
 }

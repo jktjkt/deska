@@ -170,7 +170,7 @@ def main(tag,filter):
 	try:
 		filter = Filter(filter,1)
 		where, values = filter.getWhere()
-		select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status::text,num2revision(id2num(metadata.parentRevision)),to_char(metadata.timestamp,'YYYY-MM-DD HH24:MI:SS') AS timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.id"
+		select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status::text,num2revision(id2num(metadata.parentRevision)),to_char(metadata.timestamp,'YYYY-MM-DD HH24:MI:SS') AS timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + where + " GROUP BY metadata.id, metadata.author, metadata.status, metadata.parentRevision, metadata.timestamp, metadata.message ORDER BY max(metadata.id)"
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 
@@ -214,7 +214,7 @@ def main(tag,filter):
 	try:
 		filter = Filter(filter,1)
 		where, values = filter.getWhere()
-		select = "SELECT num2revision(metadata.num),metadata.author,to_char(metadata.timestamp,'YYYY-MM-DD HH24:MI:SS') AS timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.num"
+		select = "SELECT num2revision(metadata.num),metadata.author,to_char(metadata.timestamp,'YYYY-MM-DD HH24:MI:SS') AS timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + where + " GROUP BY metadata.num, metadata.author, metadata.timestamp, metadata.message ORDER BY max(metadata.num)"
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 	

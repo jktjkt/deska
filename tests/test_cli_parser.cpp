@@ -613,7 +613,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_begin_toplevel, ParserTe
     const std::string::const_iterator it = line.begin() + line.find("*bar");
     parser->parseLine(line);
     expectParsingStarted();
-    expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object name for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
+    expectParseError(Deska::Cli::MalformedOrMissingIdentifier("Error while parsing object name for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1675,7 +1675,7 @@ BOOST_FIXTURE_TEST_CASE(jump_in_context_error, ParserTestFixture)
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);   
     expectParsingStarted();
-    expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object name for hardware hpv2->eth0. Can't find nesting parents.", line, it));
+    expectParseError(Deska::Cli::MalformedOrMissingIdentifier("Error while parsing object name for hardware hpv2->eth0. Can't find nesting parents.", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1687,7 +1687,7 @@ BOOST_FIXTURE_TEST_CASE(jump_in_context_error_2, ParserTestFixture)
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);   
     expectParsingStarted();
-    expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object name for interface eth0. Can't find nesting parents.", line, it));
+    expectParseError(Deska::Cli::MalformedOrMissingIdentifier("Error while parsing object name for interface eth0. Can't find nesting parents.", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }

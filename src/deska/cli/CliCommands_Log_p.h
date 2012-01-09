@@ -128,6 +128,8 @@ typedef enum {
     LOG_FILTER_PARSE_ERROR_TYPE_VALUE_TYPE,
     /** @short Error in an object name */
     LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER,
+    /** @short Error in an object name nesting */
+    LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER_NESTING,
 } LogFilterParseErrorType;
 
 
@@ -146,6 +148,7 @@ public:
     *   @param what Expected tokens
     *   @param kinds Symbols table with possible kind names
     *   @param metadatas Symbols table with possible metadata names
+    *   @param logFilterParseErrorType Error type for reporting purposes
     *   @see LogAttributeErrorHandler
     */
     LogFilterParseError(Iterator start, Iterator end, Iterator errorPos, const boost::spirit::info &what,
@@ -160,10 +163,18 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     *   @param attributeName Name of kind or metadata which value parsing failed
+    *   @param logFilterParseErrorType Error type for reporting purposes
     *   @see LogValueErrorHandler
     */
     LogFilterParseError(Iterator start, Iterator end, Iterator errorPos, const boost::spirit::info &what,
                         const Db::Identifier &attributeName, LogFilterParseErrorType logFilterParseErrorType);
+
+    /** @short Creates error when some error occures in object name while constructing filter on it.
+    *
+    *   @param kindName Kind name
+    *   @param logFilterParseErrorType Error type for reporting purposes
+    */
+    LogFilterParseError(const Db::Identifier &kindName, LogFilterParseErrorType logFilterParseErrorType);
 
     /** @short Function for obtaining type of the error.
     *   
@@ -244,7 +255,25 @@ public:
     */
     void addKind(const Db::Identifier &kindName);
 
+    /** @short Resets fail bit. */
+    void initParser();
+
+    /** @short Function for obtaining state of parsing.
+    *
+    *   @return False when parsing failed in some higher levels than in boost::spirit
+    */
+    bool parseError();
+
 private:
+
+    /** @short Function for creating filter for oject names as DB Filters support only queries for local names.
+    *
+    *   @param op Comparison operator
+    *   @param kindName Kind name
+    *   @param objectName Object name
+    */
+    Db::Filter constructKindFilter(Db::ComparisonOperator op, const Db::Identifier &kindName,
+                                   const Db::Identifier &objectName);
 
     /** Symbols table with comparison operators. */
     qi::symbols<char, Db::ComparisonOperator> operators;
@@ -277,6 +306,8 @@ private:
 
     Db::Identifier currentKindName;
     Db::Identifier currentMetadataName;
+
+    bool m_parseError;
 
     Log *m_parent;
 };

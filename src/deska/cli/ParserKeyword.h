@@ -80,10 +80,13 @@ typename traits::char_spec<String>::type char_spec(String const& str);
 
 
 
-std::string const keyword_spec("0-9a-zA-Z_->");
+std::string const keyword_spec("0-9a-zA-Z_-");
+std::string const value_spec("0-9a-zA-Z_->.:[],\"\'");
 
 /** @short New Qi 'keyword' directive usable as a shortcut for a repository::distinct(char_(std::string("0-9a-zA-Z_->"))) */
-traits::distinct_spec<traits::char_spec<std::string>::type>::type const keyword = distinct_spec(char_spec(keyword_spec)); 
+traits::distinct_spec<traits::char_spec<std::string>::type>::type const keyword = distinct_spec(char_spec(keyword_spec));
+/** @short New Qi 'parer_value' directive usable as a shortcut for a repository::distinct(char_(std::string("0-9a-zA-Z_->.:[],\"\'"))) */
+traits::distinct_spec<traits::char_spec<std::string>::type>::type const parser_value = distinct_spec(char_spec(value_spec));
 
 
 }
