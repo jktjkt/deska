@@ -280,6 +280,121 @@ for host in deska.host[(deska.host.color == "red") &
 \begin{center}
 Předvedení Desky
 \end{center}
+% start with the DEMO scheme
+%   `dump`, `log`, `resume`: everything is empty (r1 is a system revision)
+% Let's start a changeset so that we can perform modifications:
+%   start
+% Let's add a first object to the database.  Use tab completion:
+%   create vendor HP
+% See that it got added:
+%   dump
+% And the database does show it in the diff:
+%   diff
+% Let's create our first server. We're going to use another syntax now:
+%   hardware srv123
+% We've now switched to another context.  Let's try making clear that it's an HP server.
+% Again, we're going to use Tab completion heavily, both for "vendor" *and* the "HP":
+%   vendor HP
+% Let's see what we've done and try to commit the data. This is going to fail:
+%   commit blah
+% OK, it says that we shall add some non-NULL data. Fair enough:
+%   purchase 2011-01-01
+%   diff
+% Let's call it finished:
+%   commit Initial data
+% We're back in the root context and our data are saved:
+%   dump
+% Create another vendor and another server:
+%   create vendor IBM
+%   hardware pc02
+%   purchase 1998-10-01
+%   vendor IBM
+%   end
+% Commit these changes:
+%   commit
+% Get back to work now:
+%   start
+% Pretend that the vendor got removed:
+%   rename vendor IBM Lenovo
+% The diff shows the rename just at one place, *not* for the hardware:
+%   diff
+% Save the data:
+%   commit IBM got bought
+% Try to create an inconsistency in the DB:
+%   delete vendor Lenovo
+%   diff
+% You cannot save such a changeset:
+%   commit
+%   abort
+% Introduce a first template:
+%   start
+%   hardware_template old_ibm_box
+%   vendor Lenovo
+%   warranty 2005-12-31
+% See? The required ``purchase'' is not there, and it doesn't matter -- it's just a template.
+%   diff
+%   commit
+% Try to make use of the template:
+%   start
+%   hardware ibm01 template_hardware old_ibm_box
+%   hardware ibm02 template_hardware old_ibm_box
+%   hardware ibm03 template_hardware old_ibm_box
+% Try a commit, but it will fail:
+%   commit
+% Let's change the data just at a single place, then:
+%   hardware_template old_ibm_box purchase 1995-01-01
+% The diff tries to be smart and shows just that single change here:
+%   diff
+%   commit
+%   diff r5 r6
+% Again, the diffs are compact. OTOH, the `show` command shows everything correctly:
+%   show hardware ibm01
+% The same for `dump` which is also meant for human consumption. OTOH, backup is correct:
+%   backup filename
+% Demonstrate how to restore from backup:
+%   [run the reinstallation here]
+%   ./deska-cli
+% Tab completion works even for filenames:
+%   restore filename
+% The data are properly restored:
+%   log
+%   log (vendor == HP)
+%   log (hardware == ibm01)
+%   diff rSomething
+% See the filters in action:
+%   hardware where (vendor == Lenovo)
+%   context objects
+% Try to do a mass-modification:
+%   note_hardware blabla
+%   diff
+%   commit
+%   diff
+% Move to the contained/containable objects:
+%   host srv123
+%   diff
+% The diff shows that the objects are linked together -- as automated by the Deska DB.
+% Try to make a mistake, create a virtual_hw:
+%   vram 4
+%   commit fail
+%   end
+%   delete virtual_hardware srv123
+% Adding some services to the mix:
+%   create service www
+%   create service ftp
+%   host srv123
+%   add service www
+%   add service ftp
+%   commit
+%   diff
+% Setting services works even in an absolute way:
+%   host srv123
+%   service [www]
+%   diff
+%   commit
+%   diff
+% Create an interface, set an IPv4 address, show how is the embedding reflected in the CLI's show/dump
+% Demonstrate rebase using hardware's attributes, maybe combine with some mass-setAttribute calls
+
 \end{frame}
 
 
