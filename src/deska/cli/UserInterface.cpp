@@ -187,7 +187,7 @@ bool UserInterface::applySetAttribute(const ContextStack &context, const Db::Ide
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
-        if (!m_dbInteraction->objectExists(adjustedContext)) {
+        if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
             try {
                 // When creating contained object we have to specify also parents kind name in order to obtain list of all
                 // parents for which are we going to create contained object.
@@ -224,7 +224,7 @@ bool UserInterface::applySetAttributeInsert(const ContextStack &context, const D
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
-        if (!m_dbInteraction->objectExists(adjustedContext)) {
+        if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
             try {
                 // When creating contained object we have to specify also parents kind name in order to obtain list of all
                 // parents for which are we going to create contained object.
@@ -261,7 +261,7 @@ bool UserInterface::applySetAttributeRemove(const ContextStack &context, const D
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
-        if (!m_dbInteraction->objectExists(adjustedContext))
+        if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind))
             return false;
     }
     m_dbInteraction->setAttributeRemove(adjustedContext, attribute, value);
@@ -275,7 +275,7 @@ bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
-        if (!m_dbInteraction->objectExists(adjustedContext))
+        if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind))
             return false;
     }
     m_dbInteraction->removeAttribute(adjustedContext, attribute);
@@ -422,7 +422,7 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
+    if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
         try {
             Db::Identifier connName = contextStackToPath(context);
             std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(adjustedContext);
@@ -451,7 +451,7 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
+    if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
         try {
             Db::Identifier connName = contextStackToPath(context);
             std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(adjustedContext);
@@ -480,8 +480,14 @@ bool UserInterface::confirmSetAttributeRemove(const ContextStack &context, const
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!m_dbInteraction->objectExists(adjustedContext)) {
-        io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove identifiers from its sets.");
+    if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
+        // If the object does not exist, it is obvious, that the attribute does not exist as well
+        try {
+            Db::Identifier adjObj = contextStackToPath(adjustedContext);
+            io->reportError("Object " + adjObj + " does not exist, so you can not remove identifiers from its sets.");
+        } catch (ContextStackConversionError &e) {
+            io->reportError("Not all connected objects exist, so you can not remove identifiers from their sets.");
+        }
         parsingFailed = true;
         return false;
     }
@@ -502,8 +508,14 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!m_dbInteraction->objectExists(adjustedContext)) {
-        io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove its attributes.");
+    if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
+        // If the object does not exist, it is obvious, that the attribute does not exist as well
+        try {
+            Db::Identifier adjObj = contextStackToPath(adjustedContext);
+            io->reportError("Object " + adjObj + " does not exist, so you can not remove its attributes.");
+        } catch (ContextStackConversionError &e) {
+            io->reportError("Not all connected objects exist, so you can not remove their attributes.");
+        }
         parsingFailed = true;
         return false;
     }

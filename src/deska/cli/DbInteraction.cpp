@@ -424,14 +424,34 @@ bool DbInteraction::objectExists(const ObjectDefinition &object)
 
 
 
-bool DbInteraction::objectExists(const ContextStack &context)
+bool DbInteraction::objectExists(const ContextStack &context, const Db::Identifier &oldKind)
 {
     BOOST_ASSERT(!context.empty());
     for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
-        if (!it->filter && it->name.empty())
+        if ((it->itemType == it->CONTEXT_STACK_ITEM_TYPE_OBJECT) && it->name.empty())
             return false;
     }
-    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    
+    std::vector<ObjectDefinition> objects;
+    if (context.back().itemType != ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER) {
+        // The last item in the context stack is a regular object definition.
+        objects = expandContextStack(context);
+    } else {
+        // Last item in the context is a filter. We have to check, if it is a filter for contained object
+        // or not. If it is for some contained object, we have to filter firstly the parent and then check,
+        // if all children exist or not.
+        if (!oldKind.empty()) {
+            ContextStack oldContext = context;
+            oldContext.back().kind = oldKind;
+            objects = expandContextStack(oldContext);
+            for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+                it->kind = context.back().kind;
+            }
+        } else {
+            objects = expandContextStack(context);
+        }
+    }
+
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (!objectExists(*it))
             return false;

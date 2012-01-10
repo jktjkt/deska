@@ -199,9 +199,10 @@ public:
     /** @short Check if object in the context exists or not
     *
     *   @param context Path to the object to search for
+    *   @param oldKind Kind name specifying, that connected objects will be created
     *   @return True if object exists else false
     */
-    bool objectExists(const ContextStack &context);
+    bool objectExists(const ContextStack &context, const Db::Identifier &oldKind = Db::Identifier());
 
     /** @short Gets all objects, that are contained in this one
     *
