@@ -1117,6 +1117,11 @@ bool Rebase::operator()(const std::string &params)
                 std::ostringstream ostr;
                 ostr << "DB constraint violation:\n " << e.what() << std::endl;
                 ui->io->reportError(ostr.str());
+            } catch (Db::NotFoundError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "DB reference constraint violation:\n " << e.what() << std::endl;
+                ui->io->reportError(ostr.str());
             } catch (Db::RemoteDbError &e) {
                 ui->parsingFailed = true;
                 std::ostringstream ostr;

@@ -792,6 +792,11 @@ bool Batch::operator()(const std::string &params)
                 std::ostringstream ostr;
                 ostr << "DB constraint violation:\n " << e.what() << std::endl;
                 ui->io->reportError(ostr.str());
+            } catch (Db::NotFoundError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "DB reference constraint violation:\n " << e.what() << std::endl;
+                ui->io->reportError(ostr.str());
             } catch (Db::RemoteDbError &e) {
                 ui->parsingFailed = true;
                 std::ostringstream ostr;
@@ -1045,6 +1050,11 @@ bool Restore::operator()(const std::string &params)
                     std::ostringstream ostr;
                     ostr << "DB constraint violation:\n " << e.what() << std::endl;
                     ui->io->reportError(ostr.str());
+                } catch (Db::NotFoundError &e) {
+                    ui->parsingFailed = true;
+                    std::ostringstream ostr;
+                    ostr << "DB reference constraint violation:\n " << e.what() << std::endl;
+                    ui->io->reportError(ostr.str());
                 } catch (Db::RemoteDbError &e) {
                     ui->parsingFailed = true;
                     std::ostringstream ostr;
@@ -1152,6 +1162,14 @@ bool Execute::operator()(const std::string &params)
         } catch (Db::ConstraintError &e) {
             std::ostringstream ostr;
             ostr << "DB constraint violation:\n " << e.what() << std::endl;
+            ui->io->reportError(ostr.str());
+            // Some command could fail -> cache could be obsolete now
+            ui->m_dbInteraction->clearCache();
+            ui->m_parser->clearContextStack();
+            executingError = true;
+        } catch (Db::NotFoundError &e) {
+            std::ostringstream ostr;
+            ostr << "DB reference constraint violation:\n " << e.what() << std::endl;
             ui->io->reportError(ostr.str());
             // Some command could fail -> cache could be obsolete now
             ui->m_dbInteraction->clearCache();
