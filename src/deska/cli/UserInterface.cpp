@@ -184,9 +184,11 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
 bool UserInterface::applySetAttribute(const ContextStack &context, const Db::Identifier &kind,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
+    // Adjusting context to point to the contained object/objects
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
+        // We have to check if contained object exists for each object in the context stack
         if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
             try {
                 // When creating contained object we have to specify also parents kind name in order to obtain list of all
@@ -221,9 +223,11 @@ bool UserInterface::applySetAttribute(const ContextStack &context, const Db::Ide
 bool UserInterface::applySetAttributeInsert(const ContextStack &context, const Db::Identifier &kind,
                                             const Db::Identifier &attribute, const Db::Identifier &value)
 {
+    // Adjusting context to point to the contained object/objects
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
+        // We have to check if contained object exists for each object in the context stack
         if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
             try {
                 // When creating contained object we have to specify also parents kind name in order to obtain list of all
@@ -258,9 +262,11 @@ bool UserInterface::applySetAttributeInsert(const ContextStack &context, const D
 bool UserInterface::applySetAttributeRemove(const ContextStack &context, const Db::Identifier &kind,
                                             const Db::Identifier &attribute, const Db::Identifier &value)
 {
+    // Adjusting context to point to the contained object/objects
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
+        // We have to check if contained object exists for each object in the context stack
         if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind))
             return false;
     }
@@ -272,9 +278,11 @@ bool UserInterface::applySetAttributeRemove(const ContextStack &context, const D
 
 bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::Identifier &kind, const Db::Identifier &attribute)
 {
+    // Adjusting context to point to the contained object/objects
     ContextStack adjustedContext = context;
     if (context.back().kind != kind) {
         adjustedContext.back().kind = kind;
+        // We have to check if contained object exists for each object in the context stack
         if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind))
             return false;
     }
@@ -420,10 +428,14 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
 
     if (context.back().kind == kind)
         return true;
+    // Adjusting context to point to the contained object/objects
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
+    // We have to check if contained object exists for each object in the context stack
     if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
         try {
+            // Generate question for the user. With actual contained object, or question without list of objects
+            // when we are in context of some filter
             Db::Identifier connName = contextStackToPath(context);
             std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(adjustedContext);
             if (connectedObjects.empty())
@@ -449,10 +461,14 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
 
     if (context.back().kind == kind)
         return true;
+    // Adjusting context to point to the contained object/objects
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
+    // We have to check if contained object exists for each object in the context stack
     if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
         try {
+            // Generate question for the user. With actual contained object, or question without list of objects
+            // when we are in context of some filter
             Db::Identifier connName = contextStackToPath(context);
             std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(adjustedContext);
             if (connectedObjects.empty())
@@ -478,8 +494,10 @@ bool UserInterface::confirmSetAttributeRemove(const ContextStack &context, const
 
     if (context.back().kind == kind)
         return true;
+    // Adjusting context to point to the contained object/objects
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
+    // We have to check if contained object exists for each object in the context stack
     if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
         // If the object does not exist, it is obvious, that the attribute does not exist as well
         try {
@@ -506,8 +524,10 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
 
     if (context.back().kind == kind)
         return true;
+    // Adjusting context to point to the contained object/objects
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
+    // We have to check if contained object exists for each object in the context stack
     if (!m_dbInteraction->objectExists(adjustedContext, context.back().kind)) {
         // If the object does not exist, it is obvious, that the attribute does not exist as well
         try {

@@ -448,6 +448,7 @@ std::string OurModificationConverter2::operator()(const Db::SetAttributeModifica
         return ostr.str();
     } else {
         std::ostringstream ostr;
+        // Commenting end if it was from some deleted object. Its definition was also commented in this case.
         std::vector<ObjectDefinition>::const_iterator it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
             ObjectDefinition(lModification.kindName, lModification.objectName));
         if (it != m_ourDeletions.end())
@@ -507,6 +508,7 @@ std::string ExternModificationConverter::operator()(const Db::SetAttributeModifi
     std::ostringstream ostr;
     std::vector<ObjectDefinition>::const_iterator it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
         ObjectDefinition(modification.kindName, modification.objectName));
+    // Commenting object definition if the object was deleted by us. If we did not comment it, it would be created.
     if (it != m_ourDeletions.end())
         ostr << "# ";
     ostr << modification.kindName << " " << modification.objectName << std::endl;
@@ -574,11 +576,13 @@ std::string ExternModificationConverter2::operator()(const Db::SetAttributeModif
         std::ostringstream ostr;
         std::vector<ObjectDefinition>::const_iterator it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
             ObjectDefinition(lModification.kindName, lModification.objectName));
+        // Commenting end if it was from some deleted object. Its definition was also commented in this case.
         if (it != m_ourDeletions.end())
             ostr << "# ";
         ostr << "end" << std::endl;
         it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
             ObjectDefinition(modification.kindName, modification.objectName));
+        // Commenting object definition if the object was deleted by us. If we did not comment it, it would be created.
         if (it != m_ourDeletions.end())
             ostr << "# ";
         ostr << modification.kindName << " " << modification.objectName << std::endl;
@@ -698,6 +702,7 @@ std::string BothModificationConverter2::operator()(const Db::SetAttributeModific
         std::ostringstream ostr;
         std::vector<ObjectDefinition>::const_iterator it = std::find(m_ourDeletions.begin(), m_ourDeletions.end(),
             ObjectDefinition(lModification.kindName, lModification.objectName));
+        // Commenting end if it was from some deleted object. Its definition was also commented in this case.
         if (it != m_ourDeletions.end())
             ostr << "# ";
         ostr << "end" << std::endl;
