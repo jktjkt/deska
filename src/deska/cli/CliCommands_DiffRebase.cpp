@@ -1065,6 +1065,8 @@ bool Rebase::operator()(const std::string &params)
         ++ito;
     }
 
+    // We have to add last end if necessary as modification converters print end only for previous object and do not
+    // look to the next one
     ModificationTypeGetter modificationTypeGetter;
     ModificationSetAttrExtractor modificationSetAttrExtractor;
     if (!ourModifications.empty() || !externModifications.empty()) {
