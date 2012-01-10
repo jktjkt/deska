@@ -630,6 +630,13 @@ int UserInterface::run()
             // Some command could fail -> cache could be obsolete now
             m_dbInteraction->clearCache();
             m_parser->setContextStack(previosContextStack);
+        } catch (Db::NotFoundError &e) {
+            std::ostringstream ostr;
+            ostr << "DB reference constraint violation:\n " << e.what() << std::endl;
+            io->reportError(ostr.str());
+            // Some command could fail -> cache could be obsolete now
+            m_dbInteraction->clearCache();
+            m_parser->setContextStack(previosContextStack);
         } catch (Db::RemoteDbError &e) {
             std::ostringstream ostr;
             ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
