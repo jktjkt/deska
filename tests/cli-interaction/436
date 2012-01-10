@@ -38,13 +38,24 @@ w host h3
 w end
 w host where (note_host != "pwn")
 w cpu_ht true
-# FIXME: this should have created hardware h3.
-#<dump>
-#host h3
-#    no hardware
-#    no note_host
-#    no service
-#    no template_host
-#    no virtual_hardware
-#end
-#</dump>
+<dump>
+hardware h3
+    cpu_ht true
+    no cpu_num
+    no hepspec
+    host h3
+    no note_hardware
+    no purchase
+    no ram
+    no template_hardware
+    no vendor
+    no warranty
+end
+host h3
+    hardware h3
+    no note_host
+    no service
+    no template_host
+    no virtual_hardware
+end
+</dump>
