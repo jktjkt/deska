@@ -1061,7 +1061,7 @@ bool Rebase::operator()(const std::string &params)
             boost::apply_visitor(modificationSetAttrExtractor, externModifications.back()));
         if (it != ourDeletions.end())
             ofs << "# ";
-        ofs << "end" << std::endl;
+        //ofs << "end" << std::endl;
     }
 
     ofs.close();
