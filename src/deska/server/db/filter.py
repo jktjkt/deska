@@ -225,9 +225,11 @@ class Filter():
 		self.directAccess = directAccess
 		# counter for value id's in select string
 		self.counter = start
+		global noRevisionParameter
 		if start > 1:
-			global noRevisionParameter
 			noRevisionParameter = False
+		else:
+			noRevisionParameter = True
 		# list of values for select string
 		self.values = list()
 		# set of kinds
