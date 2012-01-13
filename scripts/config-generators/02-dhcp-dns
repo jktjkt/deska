@@ -214,8 +214,43 @@ f_rzone.close()
 # /24 allocation. We're going to do that client-side.
 unique_subnets_172 = set([".".join(str(x[1].ip4).split(".")[0:3]) for x in interfaces_vlan172])
 # The DNS zones are shared
-f_zone = open("bind-farm.particle.cz.private.zone", "wb")
-f_rzone = open("bind-farm.particle.cz.private.rzone", "wb")
+f_zone = MagicZoneFile("bind-farm.particle.cz.private.zone")
+f_zone.write("""
+;b this is a header
+$ORIGIN particle.cz.
+farm            IN      SOA   netservice1.farm.particle.cz.   svecj.fzu.cz. (
+                                      """)
+f_zone.writeSerialHere()
+f_zone.write("""
+                                      21600
+                                      3600
+                                      3600000
+                                      3h
+                                      )
+                IN      NS    sun173c.fzu.cz.
+                IN      NS    sie154b.fzu.cz.
+                IN      NS    netservice1.farm.particle.cz.
+                IN      NS    netservice2.farm.particle.cz.
+""")
+f_rzone = MagicZoneFile("bind-farm.particle.cz.private.rzone")
+f_rzone.write("""
+;b this is a header
+$ORIGIN particle.cz.
+farm            IN      SOA   netservice1.farm.particle.cz.   svecj.fzu.cz. (
+                                      """)
+f_rzone.writeSerialHere()
+f_rzone.write("""
+                                      21600
+                                      3600
+                                      3600000
+                                      3h
+                                      )
+                IN      NS    sun173c.fzu.cz.
+                IN      NS    sie154b.fzu.cz.
+                IN      NS    netservice1.farm.particle.cz.
+                IN      NS    netservice2.farm.particle.cz.
+""")
+
 for subnet in unique_subnets_172:
     f_dhcp = file("dhcpd-%s" % subnet, "wb")
     f_dhcp.write("group {\n")
