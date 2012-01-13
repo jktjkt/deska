@@ -81,6 +81,7 @@ class MagicZoneFile(object):
             sourceData.close()
             print "MagicZoneFile(%s): headers are different" % self.targetFile
             self.forceWriteData(None)
+            return
         serialText = datetime.date.today().strftime("%Y%m%d")
         # because the two characters are for the incrementing part
         suffixLen = 2
@@ -91,6 +92,7 @@ class MagicZoneFile(object):
             print "MagicZoneFile(%s): old serial '%s' is corrupted" % (self.targetFile, oldSerial)
             # Now there's a question what to do. We don't know what the old serial value was, so let's just assume zero...
             self.forceWriteData(None)
+            return
         oldNum = int(oldSerial[-suffixLen:])
         if oldNum == 99 and serialText == oldSerial[:-suffixLen]:
             sourceData.close()
