@@ -26,3 +26,20 @@ CREATE TABLE host (
 	note_host text
 );
 
+-- function for trigger, checking hardware/virtual_hardware consistency
+CREATE FUNCTION host_runs_on_hw()
+RETURNS TRIGGER
+AS
+$$
+BEGIN
+        IF NEW.hardware IS NOT NULL AND NEW.virtual_hardware IS NOT NULL THEN
+                RAISE EXCEPTION 'Host % cannot run on both hardware and virtual_hardware', NEW.name;
+        END IF;
+        RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER host_hardware_check BEFORE INSERT OR UPDATE ON host FOR EACH ROW
+EXECUTE PROCEDURE host_runs_on_hw();
+

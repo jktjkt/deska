@@ -77,5 +77,5 @@ f_ganglia_agg.close()
 
 t3 = time.time()
 
-file("__timing-stats", "ab").write(
-    "services: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))
+#file("__timing-stats", "ab").write(
+#    "services: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))
